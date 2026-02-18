@@ -35,10 +35,16 @@ export function MosqueCard({ mosque, onUpvote, onView }: MosqueCardProps) {
         </Button>
       </div>
       <div className="text-sm text-gray-300">{mosque.address}</div>
-      <div className="flex gap-2 text-xs text-gray-400">
+      <div className="flex gap-2 text-xs text-gray-400 flex-wrap">
         <span>{mosque.city}, {mosque.state}</span>
-        <span>• Ends: {mosque.taraweeh_end_date}</span>
-        <span>• Sweets: {mosque.sweet_type}</span>
+        <span>•</span>
+        <span>
+          Ends: {mosque.taraweeh_sessions && mosque.taraweeh_sessions.length > 0
+            ? mosque.taraweeh_sessions.map((s) => new Date(s.taraweeh_end_date).toLocaleDateString()).join(", ")
+            : "TBA"}
+        </span>
+        <span>•</span>
+        <span>Sweets: {mosque.sweet_type}</span>
       </div>
       <div className="text-xs text-gray-500">Views: {mosque.views}</div>
     </Card>

@@ -24,7 +24,10 @@ export default function MapView({ mosques, center }: { mosques: Mosque[]; center
                 <strong>{m.name}</strong>
                 <br />{m.address}
                 <br />{m.city}, {m.state}
-                <br />Ends: {m.taraweeh_end_date}
+                <br />
+                {m.taraweeh_sessions && m.taraweeh_sessions.length > 0
+                  ? `Ends: ${m.taraweeh_sessions.map((s) => new Date(s.taraweeh_end_date).toLocaleDateString()).join(", ")}`
+                  : "No taraweeh dates set"}
                 <br />Sweets: {m.sweet_type}
               </div>
             </Popup>
