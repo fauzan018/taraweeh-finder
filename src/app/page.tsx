@@ -10,7 +10,6 @@ import dynamic from "next/dynamic";
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 function distance(lat1: number, lon1: number, lat2: number, lon2: number) {
-  // Haversine formula
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -27,13 +26,14 @@ export default function HomePage() {
   const { location } = useLocation();
   const [mosques, setMosques] = useState<Mosque[]>([]);
   const [sorted, setSorted] = useState<Mosque[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchMosques = async () => {
+      setLoading(true);
       const { data } = await supabase.from("approved_mosques").select("*");
       
       if (data && data.length > 0) {
-        // Fetch taraweeh sessions for each mosque
         const mosquesWithSessions = await Promise.all(
           data.map(async (mosque) => {
             const { data: sessions } = await supabase
@@ -50,6 +50,7 @@ export default function HomePage() {
         );
         setMosques(mosquesWithSessions);
       }
+      setLoading(false);
     };
     fetchMosques();
   }, []);
@@ -73,6 +74,7 @@ export default function HomePage() {
       prev.map((m) => (m.id === id ? { ...m, upvotes: m.upvotes + 1 } : m))
     );
   };
+
   const handleView = (id: string) => {
     setMosques((prev) =>
       prev.map((m) => (m.id === id ? { ...m, views: m.views + 1 } : m))
@@ -81,44 +83,96 @@ export default function HomePage() {
 
   return (
     <LocationProvider>
-      <main className="min-h-screen bg-[var(--background)] p-4">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-white mb-2">Taraweeh Finder</h1>
-          <RamadanCounter />
-          
-          <div className="my-6">
-            <MapView
-              mosques={sorted}
-              center={location ? [location.coords.latitude, location.coords.longitude] : [22.9734, 78.6569]}
-            />
+      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] via-[#0a0a1a] to-[var(--background)]">
+        {/* Header Section */}
+        <div className="border-b border-[var(--card)]/30 backdrop-blur-md sticky top-0 z-40 bg-[var(--background)]/80">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-[var(--primary)] via-orange-400 to-red-500 bg-clip-text text-transparent">
+                  Taraweeh Finder
+                </h1>
+                <p className="text-gray-400 mt-1 text-sm sm:text-base">Find the best taraweeh experiences near you</p>
+              </div>
+              <div className="hidden sm:block">
+                <RamadanCounter />
+              </div>
+            </div>
+            <div className="sm:hidden mt-4">
+              <RamadanCounter />
+            </div>
           </div>
+        </div>
 
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-white mb-4">
-              {sorted.length > 0 ? `Found ${sorted.length} Mosques` : "Loading mosques..."}
-            </h2>
-            <div className="flex flex-col gap-4">
-              {sorted.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">
-                  <p>No mosques found or still loading data...</p>
-                </div>
-              ) : (
-                sorted.map((mosque) => (
-                  <MosqueCard
-                    key={mosque.id}
-                    mosque={mosque}
-                    onUpvote={handleUpvote}
-                    onView={handleView}
-                  />
-                ))
-              )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+          {/* Map Section */}
+          <div className="mb-12">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-[var(--card)]/20 hover:border-[var(--primary)]/50 transition-all duration-300">
+              <MapView
+                mosques={sorted}
+                center={location ? [location.coords.latitude, location.coords.longitude] : [22.9734, 78.6569]}
+              />
             </div>
           </div>
 
-          <footer className="w-full text-center mt-8 py-6 border-t border-[var(--card)]">
-            <span className="font-extrabold text-lg tracking-wide text-[var(--primary)] drop-shadow-lg" style={{ fontFamily: 'Geist, Inter, sans-serif' }}>
-              Made with <span role="img" aria-label="heart">❤️</span> by Fauzan
-            </span>
+          {/* Mosques List Section */}
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">
+                  {loading ? "Loading Mosques..." : `${sorted.length} Mosques Found`}
+                </h2>
+                <p className="text-gray-400">
+                  {sorted.length > 0 
+                    ? "Sorted by distance from your location" 
+                    : "No mosques available or searching..."}
+                </p>
+              </div>
+              {sorted.length > 0 && (
+                <div className="hidden sm:block bg-[var(--card)]/40 backdrop-blur px-4 py-2 rounded-lg border border-[var(--primary)]/30">
+                  <p className="text-[var(--primary)] font-semibold">{sorted.length} Results</p>
+                </div>
+              )}
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center items-center py-16">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]"></div>
+              </div>
+            ) : sorted.length === 0 ? (
+              <div className="text-center py-16 bg-[var(--card)]/20 backdrop-blur rounded-2xl border border-[var(--card)]/30">
+                <p className="text-gray-400 text-lg">🕌 No mosques found yet</p>
+                <p className="text-gray-500 mt-2">Check back soon for updates</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sorted.map((mosque, index) => (
+                  <div 
+                    key={mosque.id}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <MosqueCard
+                      mosque={mosque}
+                      onUpvote={handleUpvote}
+                      onView={handleView}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <footer className="border-t border-[var(--card)]/30 pt-12 mt-16">
+            <div className="text-center pb-8">
+              <p className="text-gray-400 flex items-center justify-center gap-2">
+                <span>Made with</span>
+                <span className="text-red-500 animate-pulse">❤️</span>
+                <span>by Fauzan during Ramadan</span>
+              </p>
+              <p className="text-gray-600 text-sm mt-2">© 2026 Taraweeh Finder. All rights reserved.</p>
+            </div>
           </footer>
         </div>
       </main>
