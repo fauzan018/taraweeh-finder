@@ -1,16 +1,37 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Mosque } from "@/types";
+import { Mosque, TaraweehSession } from "@/types";
 import { Button } from "@/components/ui/button";
 
+interface MosqueWithSessions extends Mosque {
+  taraweeh_sessions: TaraweehSession[];
+}
+
 export default function ApprovedMasjids() {
-  const [mosques, setMosques] = useState<Mosque[]>([]);
+  const [mosques, setMosques] = useState<MosqueWithSessions[]>([]);
 
   useEffect(() => {
     const fetchMosques = async () => {
-      const { data } = await supabase.from("approved_mosques").select("*");
-      setMosques(data || []);
+      const { data: mosquesData } = await supabase.from("approved_mosques").select("*");
+      
+      if (mosquesData) {
+        const mosquesWithSessions = await Promise.all(
+          mosquesData.map(async (mosque) => {
+            const { data: sessions } = await supabase
+              .from("taraweeh_sessions")
+              .select("*")
+              .eq("mosque_id", mosque.id)
+              .order("session_number", { ascending: true });
+            
+            return {
+              ...mosque,
+              taraweeh_sessions: sessions || [],
+            };
+          })
+        );
+        setMosques(mosquesWithSessions);
+      }
     };
     fetchMosques();
   }, []);
@@ -30,7 +51,7 @@ export default function ApprovedMasjids() {
           <tr className="text-left text-white">
             <th className="p-3">Name</th>
             <th className="p-3">City</th>
-            <th className="p-3">End Date</th>
+            <th className="p-3">Taraweeh Dates</th>
             <th className="p-3">Views</th>
             <th className="p-3">Upvotes</th>
             <th className="p-3">Actions</th>
@@ -41,7 +62,19 @@ export default function ApprovedMasjids() {
             <tr key={m.id} className="border-b border-[var(--card)] text-white">
               <td className="p-3">{m.name}</td>
               <td className="p-3">{m.city}</td>
-              <td className="p-3">{m.taraweeh_end_date}</td>
+              <td className="p-3">
+                {m.taraweeh_sessions?.length > 0 ? (
+                  <div className="text-sm">
+                    {m.taraweeh_sessions.map((session, idx) => (
+                      <div key={session.id}>
+                        Session {session.session_number}: {new Date(session.taraweeh_end_date).toLocaleDateString()}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  "No dates set"
+                )}
+              </td>
               <td className="p-3">{m.views}</td>
               <td className="p-3">{m.upvotes}</td>
               <td className="p-3 flex gap-2">
