@@ -80,7 +80,12 @@ export default function HomePage() {
             />
           ))}
         </div>
-      </main>
+
+      <footer className="w-full text-center mt-8 py-6">
+        <span className="font-extrabold text-lg tracking-wide text-[var(--primary)] drop-shadow-lg" style={{ fontFamily: 'Geist, Inter, sans-serif' }}>
+          Made with <span role="img" aria-label="heart">❤️</span> by Fauzan
+        </span>
+      </footer>
     </LocationProvider>
   );
 }
