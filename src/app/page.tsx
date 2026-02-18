@@ -5,6 +5,7 @@ import { Mosque } from "@/types";
 import { MosqueCard } from "@/components/MosqueCard";
 import { LocationProvider, useLocation } from "@/components/LocationProvider";
 import RamadanCounter from "@/components/RamadanCounter";
+import { MosqueCardSkeleton, PageSkeletonGrid } from "@/components/Skeleton";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
@@ -83,16 +84,16 @@ export default function HomePage() {
 
   return (
     <LocationProvider>
-      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] via-[#0a0a1a] to-[var(--background)]">
+      <main className="min-h-screen bg-gradient-to-b from-[#05050f] via-[#0a0a14] to-[#05050f]">
         {/* Header Section */}
-        <div className="border-b border-[var(--card)]/30 backdrop-blur-md sticky top-0 z-40 bg-[var(--background)]/80">
+        <div className="border-b border-white/5 backdrop-blur-xl bg-white/2">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-[var(--primary)] via-orange-400 to-red-500 bg-clip-text text-transparent">
+                <h1 className="text-4xl sm:text-5xl font-bold text-white">
                   Taraweeh Finder
                 </h1>
-                <p className="text-gray-400 mt-1 text-sm sm:text-base">Find the best taraweeh experiences near you</p>
+                <p className="text-gray-500 mt-1 text-sm sm:text-base">Discover Taraweeh near you</p>
               </div>
               <div className="hidden sm:block">
                 <RamadanCounter />
@@ -105,44 +106,26 @@ export default function HomePage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          {/* Map Section */}
-          <div className="mb-12">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-[var(--card)]/20 hover:border-[var(--primary)]/50 transition-all duration-300">
-              <MapView
-                mosques={sorted}
-                center={location ? [location.coords.latitude, location.coords.longitude] : [22.9734, 78.6569]}
-              />
-            </div>
-          </div>
-
           {/* Mosques List Section */}
           <div className="mb-12">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h2 className="text-3xl font-bold text-white mb-2">
-                  {loading ? "Loading Mosques..." : `${sorted.length} Mosques Found`}
+                  {loading ? "Loading..." : `${sorted.length} Mosques`}
                 </h2>
-                <p className="text-gray-400">
+                <p className="text-gray-600">
                   {sorted.length > 0 
-                    ? "Sorted by distance from your location" 
-                    : "No mosques available or searching..."}
+                    ? "Sorted by distance" 
+                    : "No mosques found"}
                 </p>
               </div>
-              {sorted.length > 0 && (
-                <div className="hidden sm:block bg-[var(--card)]/40 backdrop-blur px-4 py-2 rounded-lg border border-[var(--primary)]/30">
-                  <p className="text-[var(--primary)] font-semibold">{sorted.length} Results</p>
-                </div>
-              )}
             </div>
 
             {loading ? (
-              <div className="flex justify-center items-center py-16">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]"></div>
-              </div>
+              <PageSkeletonGrid />
             ) : sorted.length === 0 ? (
-              <div className="text-center py-16 bg-[var(--card)]/20 backdrop-blur rounded-2xl border border-[var(--card)]/30">
-                <p className="text-gray-400 text-lg">🕌 No mosques found yet</p>
-                <p className="text-gray-500 mt-2">Check back soon for updates</p>
+              <div className="text-center py-16 bg-white/5 backdrop-blur rounded-2xl border border-white/10">
+                <p className="text-gray-500 text-lg">No mosques available</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -163,15 +146,29 @@ export default function HomePage() {
             )}
           </div>
 
+          {/* Map Section */}
+          <div className="mb-12">
+            <div className="relative rounded-2xl overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-300">
+              {loading ? (
+                <div className="w-full h-[400px] bg-white/5 backdrop-blur rounded-2xl animate-pulse" />
+              ) : (
+                <MapView
+                  mosques={sorted}
+                  center={location ? [location.coords.latitude, location.coords.longitude] : [22.9734, 78.6569]}
+                />
+              )}
+            </div>
+          </div>
+
           {/* Footer */}
-          <footer className="border-t border-[var(--card)]/30 pt-12 mt-16">
+          <footer className="border-t border-white/5 pt-12 mt-16">
             <div className="text-center pb-8">
-              <p className="text-gray-400 flex items-center justify-center gap-2">
-                <span>Made with</span>
-                <span className="text-red-500 animate-pulse">❤️</span>
-                <span>by Fauzan during Ramadan</span>
+              <p className="text-gray-600 flex items-center justify-center gap-2">
+                <span>Taraweeh Finder</span>
+                <span className="text-gray-700">•</span>
+                <span>Ramadan 1447 AH</span>
               </p>
-              <p className="text-gray-600 text-sm mt-2">© 2026 Taraweeh Finder. All rights reserved.</p>
+              <p className="text-gray-700 text-sm mt-2">Made with ❤️ by Fauzan</p>
             </div>
           </footer>
         </div>

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(req: NextRequest) {
+  // Check if the request is for admin routes (except login)
   if (req.nextUrl.pathname.startsWith("/admin") && !req.nextUrl.pathname.startsWith("/admin/login")) {
-    const isAdmin = req.cookies.get("admin")?.value || req.headers.get("x-admin") || req.nextUrl.searchParams.get("admin");
-    if (!isAdmin && typeof window !== "undefined" && !localStorage.getItem("admin")) {
+    const adminCookie = req.cookies.get("admin_token")?.value;
+    
+    // If no admin token cookie exists, redirect to login
+    if (!adminCookie) {
       return NextResponse.redirect(new URL("/admin/login", req.url));
     }
   }
+  
   return NextResponse.next();
 }
 

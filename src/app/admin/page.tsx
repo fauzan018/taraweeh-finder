@@ -1,8 +1,10 @@
 "use client";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [stats, setStats] = useState({
     approved: 0,
     pending: 0,
@@ -26,9 +28,23 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
+  const handleLogout = async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    router.push("/admin/login");
+  };
+
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-6">Dashboard</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-white rounded-lg font-semibold transition-all duration-300"
+        >
+          Logout
+        </button>
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-[var(--card)] rounded-xl p-4 text-center text-white shadow-xl">
           <div className="text-lg font-semibold">Approved</div>
@@ -47,12 +63,13 @@ export default function AdminDashboard() {
           <div className="text-2xl font-bold">{stats.upvotes}</div>
         </div>
       </div>
+
       <div className="bg-[var(--surface)] rounded-xl p-4 shadow-xl">
         <h2 className="text-lg font-bold text-white mb-2">Recent Activity</h2>
         <ul className="text-white text-sm">
           {stats.recent.map((m, i) => (
             <li key={m.id} className="py-1 border-b border-[var(--card)] last:border-none">
-              {m.name} ({m.city}, {m.state}) – {m.taraweeh_end_date}
+              {m.name} ({m.city}, {m.state}) – View details in other sections
             </li>
           ))}
         </ul>

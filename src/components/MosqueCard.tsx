@@ -1,7 +1,6 @@
 "use client";
 import { Mosque } from "../types";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -33,24 +32,20 @@ export function MosqueCard({ mosque, onUpvote, onView }: MosqueCardProps) {
 
   return (
     <Card 
-      className="group relative overflow-hidden bg-gradient-to-br from-[var(--card)] to-[#1a1a2e] border border-[var(--card)]/50 hover:border-[var(--primary)]/50 rounded-2xl p-6 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--primary)]/20 cursor-pointer"
+      className="group relative overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:bg-white/8 cursor-pointer"
       onClick={handleView}
     >
-      {/* Background gradient effect on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/0 to-[var(--primary)]/0 group-hover:from-[var(--primary)]/5 group-hover:to-[var(--primary)]/10 transition-all duration-300" />
-      
       <div className="relative z-10">
         {/* Header with mosque name and upvote button */}
-        <div className="flex items-start justify-between mb-4 gap-4">
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-white group-hover:text-[var(--primary)] transition-colors duration-300 line-clamp-2">
+        <div className="flex items-start justify-between mb-4 gap-3">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-semibold text-white group-hover:text-gray-100 transition-colors duration-300 line-clamp-2">
               {mosque.name}
             </h2>
-            {/* Badge for multiple sessions */}
             {mosque.taraweeh_sessions && mosque.taraweeh_sessions.length > 1 && (
-              <div className="mt-2 inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/50 rounded-full px-3 py-1">
-                <span className="text-orange-400 text-xs font-semibold">
-                  🎊 {mosque.taraweeh_sessions.length} Sessions
+              <div className="mt-2 inline-flex items-center gap-1 bg-white/10 rounded-full px-2 py-1 text-xs">
+                <span className="text-gray-400">
+                  {mosque.taraweeh_sessions.length} Sessions
                 </span>
               </div>
             )}
@@ -58,67 +53,50 @@ export function MosqueCard({ mosque, onUpvote, onView }: MosqueCardProps) {
           <button 
             onClick={handleUpvote} 
             disabled={upvoted}
-            className={`flex-shrink-0 px-4 py-2 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 ${
+            className={`flex-shrink-0 px-3 py-1.5 rounded-lg font-semibold text-sm transition-all duration-300 overflow-hidden relative group/btn border ${
               upvoted
-                ? 'bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/50'
-                : 'bg-[var(--primary)] hover:bg-orange-500 text-black border border-[var(--primary)] hover:shadow-lg hover:shadow-[var(--primary)]/50'
+                ? 'bg-white/10 text-gray-400 border-white/10'
+                : 'bg-white/15 text-white border-white/20 hover:bg-white/20 hover:border-white/40 hover:shadow-md'
             }`}
           >
-            <span>👍</span>
-            <span className="font-bold">{mosque.upvotes}</span>
+            <span className="relative z-10 flex items-center gap-1">
+              👍 {mosque.upvotes}
+            </span>
+            {!upvoted && (
+              <span className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+            )}
           </button>
         </div>
 
         {/* Location info */}
-        <div className="mb-4 space-y-2">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-[var(--primary)]">📍</span>
-            <p className="text-gray-300">{mosque.address}</p>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-400">{mosque.city}, {mosque.state}</span>
-          </div>
+        <div className="mb-4 space-y-1 text-sm">
+          <p className="text-gray-400 line-clamp-1">{mosque.address}</p>
+          <p className="text-gray-500">{mosque.city}, {mosque.state}</p>
         </div>
 
         {/* Taraweeh dates */}
-        <div className="mb-4 bg-[var(--background)]/50 backdrop-blur-sm border border-[var(--card)]/30 rounded-lg p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[var(--primary)] font-semibold text-sm">⏰ Taraweeh Ends:</span>
-          </div>
-          <p className="text-gray-200 text-sm font-medium">
+        <div className="mb-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-3">
+          <p className="text-xs text-gray-500 mb-1">Taraweeh Ends</p>
+          <p className="text-sm text-gray-200 font-medium">
             {taraweehDates}
           </p>
         </div>
 
         {/* Sweets info */}
         {mosque.sweet_type && (
-          <div className="mb-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🍯</span>
-              <div>
-                <p className="text-gray-400 text-xs">Sweet Type</p>
-                <p className="text-emerald-400 font-semibold">{mosque.sweet_type}</p>
-              </div>
-            </div>
+          <div className="mb-3 bg-white/5 border border-white/10 rounded-lg p-3">
+            <p className="text-xs text-gray-500 mb-1">Sweets</p>
+            <p className="text-sm text-gray-200">{mosque.sweet_type}</p>
           </div>
         )}
 
         {/* Stats footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-[var(--card)]/30">
-          <div className="flex items-center gap-4 text-xs text-gray-500">
-            <span className="flex items-center gap-1">
-              <span>👁️</span>
-              <span>{mosque.views} views</span>
-            </span>
+        <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs text-gray-600">
+          <div className="flex gap-3">
+            <span>👁️ {mosque.views}</span>
             {mosque.crowd_level && (
-              <span className="flex items-center gap-1">
-                <span>👥</span>
-                <span className="capitalize">{mosque.crowd_level} crowd</span>
-              </span>
+              <span className="capitalize">👥 {mosque.crowd_level}</span>
             )}
-          </div>
-          <div className="text-xs font-medium text-[var(--primary)]/70 group-hover:text-[var(--primary)] transition-colors">
-            Click to learn more →
           </div>
         </div>
       </div>
