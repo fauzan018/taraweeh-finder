@@ -31,7 +31,25 @@ export default function HomePage() {
   useEffect(() => {
     const fetchMosques = async () => {
       const { data } = await supabase.from("approved_mosques").select("*");
-      setMosques(data || []);
+      
+      if (data && data.length > 0) {
+        // Fetch taraweeh sessions for each mosque
+        const mosquesWithSessions = await Promise.all(
+          data.map(async (mosque) => {
+            const { data: sessions } = await supabase
+              .from("taraweeh_sessions")
+              .select("*")
+              .eq("mosque_id", mosque.id)
+              .order("session_number", { ascending: true });
+            
+            return {
+              ...mosque,
+              taraweeh_sessions: sessions || [],
+            };
+          })
+        );
+        setMosques(mosquesWithSessions);
+      }
     };
     fetchMosques();
   }, []);
@@ -64,28 +82,45 @@ export default function HomePage() {
   return (
     <LocationProvider>
       <main className="min-h-screen bg-[var(--background)] p-4">
-        <h1 className="text-2xl font-bold text-white mb-2">Taraweeh Finder</h1>
-        <RamadanCounter />
-        <MapView
-          mosques={sorted}
-          center={location ? [location.coords.latitude, location.coords.longitude] : [22.9734, 78.6569]}
-        />
-        <div className="flex flex-col gap-4">
-          {sorted.map((mosque) => (
-            <MosqueCard
-              key={mosque.id}
-              mosque={mosque}
-              onUpvote={handleUpvote}
-              onView={handleView}
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold text-white mb-2">Taraweeh Finder</h1>
+          <RamadanCounter />
+          
+          <div className="my-6">
+            <MapView
+              mosques={sorted}
+              center={location ? [location.coords.latitude, location.coords.longitude] : [22.9734, 78.6569]}
             />
-          ))}
-        </div>
+          </div>
 
-        <footer className="w-full text-center mt-8 py-6">
-          <span className="font-extrabold text-lg tracking-wide text-[var(--primary)] drop-shadow-lg" style={{ fontFamily: 'Geist, Inter, sans-serif' }}>
-            Made with <span role="img" aria-label="heart">❤️</span> by Fauzan
-          </span>
-        </footer>
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-white mb-4">
+              {sorted.length > 0 ? `Found ${sorted.length} Mosques` : "Loading mosques..."}
+            </h2>
+            <div className="flex flex-col gap-4">
+              {sorted.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">
+                  <p>No mosques found or still loading data...</p>
+                </div>
+              ) : (
+                sorted.map((mosque) => (
+                  <MosqueCard
+                    key={mosque.id}
+                    mosque={mosque}
+                    onUpvote={handleUpvote}
+                    onView={handleView}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          <footer className="w-full text-center mt-8 py-6 border-t border-[var(--card)]">
+            <span className="font-extrabold text-lg tracking-wide text-[var(--primary)] drop-shadow-lg" style={{ fontFamily: 'Geist, Inter, sans-serif' }}>
+              Made with <span role="img" aria-label="heart">❤️</span> by Fauzan
+            </span>
+          </footer>
+        </div>
       </main>
     </LocationProvider>
   );
