@@ -16,7 +16,6 @@ export function MosqueSubmissionForm({ onSuccess, onError }: MosqueSubmissionFor
   const [form, setForm] = useState({
     name: "",
     address: "",
-    state: "",
     city: "",
     googleMapsLink: "",
     sweet_type: "",
@@ -55,8 +54,8 @@ export function MosqueSubmissionForm({ onSuccess, onError }: MosqueSubmissionFor
     setSuccessMessage(null);
     setErrorMessage(null);
     try {
-      if (!form.name || !form.address || !form.state || !form.city || !form.sweet_type || !form.googleMapsLink) {
-        throw new Error("Please fill in all required fields, including a valid Google Maps link and sweet type");
+      if (!form.name || !form.address || !form.city || !form.sweet_type) {
+        throw new Error("Please fill in all required fields, including sweet type");
       }
       // Submit via API route
       const response = await fetch("/api/submit", {
@@ -101,9 +100,8 @@ export function MosqueSubmissionForm({ onSuccess, onError }: MosqueSubmissionFor
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Input required label="Mosque Name" name="name" value={form.name} onChange={handleChange} placeholder="e.g., Al-Salaam Mosque" />
             <Input required label="City" name="city" value={form.city} onChange={handleChange} placeholder="e.g., Delhi" />
-            <Input required label="State" name="state" value={form.state} onChange={handleChange} placeholder="e.g., Delhi" />
             <Input required label="Address" name="address" value={form.address} onChange={handleChange} placeholder="Full address" />
-            <Input required label="Google Maps Link" name="googleMapsLink" value={form.googleMapsLink} onChange={handleChange} placeholder="Paste Google Maps link here" />
+            <Input label="Google Maps Link (Optional)" name="googleMapsLink" value={form.googleMapsLink} onChange={handleChange} placeholder="Paste Google Maps link here" />
             <Input required label="Sweet Type" name="sweet_type" value={form.sweet_type} onChange={handleChange} placeholder="e.g., Laddoo, Balushahi" />
           </div>
         </section>

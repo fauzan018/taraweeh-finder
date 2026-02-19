@@ -1,66 +1,59 @@
+
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-// Helper to extract lat/lng from Google Maps link
-function extractLatLng(link: string): { latitude: number; longitude: number } | null {
-  // Handles links like: https://maps.google.com/?q=28.6507,77.2334 or .../@28.6507,77.2334,...
-  const regex = /[?&]q=([-\d.]+),([-\d.]+)/;
-  const regex2 = /@([-\d.]+),([-\d.]+)/;
-  let match = link.match(regex);
-  if (!match) match = link.match(regex2);
-  if (match) {
-    return { latitude: parseFloat(match[1]), longitude: parseFloat(match[2]) };
-  }
-  return null;
+function extractLatLng(link) {
+  // Accepts ?q=lat,lng or @lat,lng
+  const q = /[?&]q=([-\d.]+),([-\d.]+)/;
+  const at = /@([-\d.]+),([-\d.]+)/;
+  let m = link.match(q) || link.match(at);
+  if (!m) return null;
+  return { latitude: parseFloat(m[1]), longitude: parseFloat(m[2]) };
 }
 
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
     const data = await req.json();
-    // Validate required fields
-    const required = ["name", "address", "state", "city", "googleMapsLink", "sweet_type"];
-    for (const field of required) {
-      if (!data[field]) {
-        return NextResponse.json({ error: `Missing field: ${field}` }, { status: 400 });
+    const { name, address, city, googleMapsLink, sweet_type, distribution_time, crowd_level, taraweehDates } = data;
+    if (!name || !address || !city || !sweet_type) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+    let latitude = null, longitude = null;
+    if (googleMapsLink) {
+      const latlng = extractLatLng(googleMapsLink);
+      if (latlng) {
+        latitude = latlng.latitude;
+        longitude = latlng.longitude;
       }
     }
-    const latlng = extractLatLng(data.googleMapsLink);
-    if (!latlng) {
-      return NextResponse.json({ error: "Invalid Google Maps link. Could not extract coordinates." }, { status: 400 });
-    }
-    // Insert into pending_mosques
-    const { error, data: mosque } = await supabase.from("pending_mosques").insert([
+    // Insert mosque (state, latitude, longitude are nullable)
+    const { data: mosque, error } = await supabase.from("pending_mosques").insert([
       {
-        name: data.name,
-        address: data.address,
-        state: data.state,
-        city: data.city,
-        latitude: latlng.latitude,
-        longitude: latlng.longitude,
-        sweet_type: data.sweet_type,
-        distribution_time: data.distribution_time || null,
-        crowd_level: data.crowd_level || null,
+        name,
+        address,
+        city,
+        latitude,
+        longitude,
+        sweet_type,
+        distribution_time: distribution_time || null,
+        crowd_level: crowd_level || null,
       }
     ]).select().single();
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    // Insert taraweeh sessions if provided
-    if (Array.isArray(data.taraweehDates) && mosque && mosque.id) {
-      const sessions = data.taraweehDates.filter(Boolean).map((date: string, idx: number) => ({
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    // Insert sessions
+    if (Array.isArray(taraweehDates) && mosque && mosque.id) {
+      const sessions = taraweehDates.filter(Boolean).map((date, i) => ({
         mosque_id: mosque.id,
         taraweeh_end_date: date,
-        session_number: idx + 1,
+        session_number: i + 1,
       }));
-      if (sessions.length > 0) {
+      if (sessions.length) {
         const { error: sessionError } = await supabase.from("pending_taraweeh_sessions").insert(sessions);
-        if (sessionError) {
-          return NextResponse.json({ error: sessionError.message }, { status: 500 });
-        }
+        if (sessionError) return NextResponse.json({ error: sessionError.message }, { status: 500 });
       }
     }
     return NextResponse.json({ success: true });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Unknown error" }, { status: 500 });
+  } catch (e) {
+    return NextResponse.json({ error: e?.message || "Unknown error" }, { status: 500 });
   }
 }
