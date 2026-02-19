@@ -13,7 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '../ui/Button';
+import { Button } from '@/components/ui/Button';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },

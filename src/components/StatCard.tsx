@@ -1,6 +1,6 @@
 "use client";
-import { Card } from "./ui/Card";
-import { Badge } from "./ui/Badge";
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import { ReactNode } from "react";
 
 interface StatCardProps {

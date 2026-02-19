@@ -2,7 +2,7 @@
 
 import { MapPin, Menu } from 'lucide-react';
 import RamadanCounter from './RamadanCounter';
-import { Button } from './ui/Button';
+import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { useState } from 'react';
 
