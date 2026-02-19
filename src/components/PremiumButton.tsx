@@ -18,7 +18,7 @@ export function PremiumButton({
 
   const variantClasses = {
     primary:
-      "px-4 py-2.5 bg-white/15 hover:bg-white/25 border border-white/20 hover:border-white/40 text-white shadow-lg hover:shadow-xl",
+      "px-4 py-2.5 bg-white/15 hover:bg-white/25 border border-white/20 hover:border-white/40 text-black shadow-lg hover:shadow-xl",
     secondary:
       "px-4 py-2 bg-white/8 hover:bg-white/15 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white",
     tertiary:

@@ -97,7 +97,7 @@ export default function HomePage() {
                 <p className="text-gray-500 mt-1 text-sm sm:text-base">Discover Taraweeh near you</p>
               </div>
               <div className="hidden sm:flex items-center gap-4">
-                <Link href="/submit" className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition-all duration-300">
+                <Link href="/submit" className="px-4 py-2 bg-white/10 hover:bg-white/20 text-black rounded-lg font-semibold transition-all duration-300">
                   Submit Mosque
                 </Link>
                 <RamadanCounter />

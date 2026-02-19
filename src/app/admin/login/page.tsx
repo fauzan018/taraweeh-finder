@@ -52,7 +52,7 @@ export default function AdminLogin() {
 
             {/* Password Input */}
             <div className="space-y-2">
-              <label className="text-gray-300 text-sm font-medium block">
+              <label className="text-gray-700 text-sm font-medium block">
                 Password
               </label>
               <div className="relative group">
@@ -62,7 +62,7 @@ export default function AdminLogin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
-                  className="w-full rounded-lg p-3 bg-white/5 hover:bg-white/8 border border-white/20 focus:border-white/40 text-white placeholder-gray-600 focus:outline-none transition-all duration-300 disabled:opacity-50"
+                  className="w-full rounded-lg p-3 bg-white/5 hover:bg-white/8 border border-white/20 focus:border-white/40 text-black placeholder-gray-600 focus:outline-none transition-all duration-300 disabled:opacity-50"
                 />
               </div>
             </div>
