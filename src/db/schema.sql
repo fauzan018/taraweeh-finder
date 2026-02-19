@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS approved_mosques (
   address TEXT NOT NULL,
   state TEXT NOT NULL,
   city TEXT NOT NULL,
-  latitude DOUBLE PRECISION NOT NULL,
-  longitude DOUBLE PRECISION NOT NULL,
+  latitude DOUBLE PRECISION,
+  longitude DOUBLE PRECISION,
   sweet_type TEXT,
   distribution_time TEXT,
   crowd_level TEXT,
@@ -65,12 +65,12 @@ VALUES
 
 -- Insert taraweeh sessions for demo data
 INSERT INTO taraweeh_sessions (mosque_id, taraweeh_end_date, session_number)
-SELECT id, '2026-03-20', 1 FROM approved_mosques WHERE name = 'Jama Masjid'
+SELECT id, DATE '2026-03-20', 1 FROM approved_mosques WHERE name = 'Jama Masjid'
 UNION ALL
-SELECT id, '2026-03-21', 1 FROM approved_mosques WHERE name = 'Haji Ali Dargah'
+SELECT id, DATE '2026-03-21', 1 FROM approved_mosques WHERE name = 'Haji Ali Dargah'
 UNION ALL
-SELECT id, '2026-03-22', 1 FROM approved_mosques WHERE name = 'Mecca Masjid'
+SELECT id, DATE '2026-03-22', 1 FROM approved_mosques WHERE name = 'Mecca Masjid'
 UNION ALL
-SELECT id, '2026-03-23', 1 FROM approved_mosques WHERE name = 'Aishbagh Eidgah'
+SELECT id, DATE '2026-03-23', 1 FROM approved_mosques WHERE name = 'Aishbagh Eidgah'
 UNION ALL
-SELECT id, '2026-03-24', 1 FROM approved_mosques WHERE name = 'Jamia Masjid';
+SELECT id, DATE '2026-03-24', 1 FROM approved_mosques WHERE name = 'Jamia Masjid';

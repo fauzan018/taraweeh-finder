@@ -26,7 +26,7 @@ export async function POST(req: Request) {
         longitude = latlng.longitude;
       }
     }
-    // Insert mosque (state, latitude, longitude are nullable)
+    // Insert mosque (latitude, longitude only from Google Maps link)
     const { data: mosque, error } = await supabase.from("pending_mosques").insert([
       {
         name,
