@@ -245,6 +245,7 @@ function HomeContent() {
         onCityChange={setSelectedCity}
         selectedCity={selectedCity}
         cities={availableCities}
+        showFilters
       />
 
       <main className="bg-background min-h-screen pb-8">
@@ -314,10 +315,10 @@ function HomeContent() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="relative max-w-2xl mx-auto text-center">
                   <h3 className="text-4xl font-extrabold text-text-primary mb-4 tracking-tight">
-                    Know a mosque offering Taraweeh?
+                    Know a mosque offering Taraweeh sweets?
                   </h3>
                   <p className="text-text-secondary text-lg mb-10 font-medium">
-                    Help your community find prayer times and refreshments at local mosques during Ramadan.
+                    Help your community find taraweeh sweets and distribution details at local mosques during Ramadan.
                   </p>
                   <Link href="/submit">
                     <button className="px-10 py-4 bg-primary text-surface-light font-bold rounded-xl hover:bg-primary-hover transition-all duration-200 active:scale-95 shadow-lg hover:shadow-primary/30 text-lg">
@@ -336,10 +337,10 @@ function HomeContent() {
               <div>
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-3xl">🕌</span>
-                  <h2 className="text-xl font-bold text-text-primary tracking-tight">Taraweeh Finder</h2>
+                  <h2 className="text-xl font-bold text-text-primary tracking-tight">Taraweeh Sweets Finder</h2>
                 </div>
                 <p className="text-text-secondary text-base">
-                  Discover taraweeh sessions at nearby masjids during Ramadan.
+                  Discover taraweeh sweets at nearby masjids during Ramadan.
                 </p>
               </div>
 
@@ -349,6 +350,7 @@ function HomeContent() {
                   <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
                   <li><Link href="/submit" className="hover:text-primary transition-colors">Submit Mosque</Link></li>
                   <li><Link href="/admin/login" className="hover:text-primary transition-colors">Admin</Link></li>
+                  <li><Link href="/support" className="hover:text-primary transition-colors">Support Us</Link></li>
                 </ul>
               </div>
 

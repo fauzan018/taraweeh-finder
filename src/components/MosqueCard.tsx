@@ -3,6 +3,8 @@ import { Mosque } from "../types";
 import { Card } from "@/components/ui/UiCard";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link";
+import { Heart } from "lucide-react";
 
 interface MosqueCardProps {
   mosque: Mosque;
@@ -74,9 +76,9 @@ export function MosqueCard({ mosque, onUpvote, onView }: MosqueCardProps) {
           <p className="text-gray-500">{mosque.city}, {mosque.state}</p>
         </div>
 
-        {/* Taraweeh dates */}
+        {/* Sweets dates */}
         <div className="mb-3 bg-[var(--surface)] backdrop-blur-sm border border-[var(--card)] rounded-lg p-3">
-          <p className="text-xs text-gray-400 mb-1">Taraweeh Ends</p>
+          <p className="text-xs text-gray-400 mb-1">Sweets Dates</p>
           <p className="text-sm text-gray-100 font-medium">
             {taraweehDates}
           </p>
@@ -98,6 +100,14 @@ export function MosqueCard({ mosque, onUpvote, onView }: MosqueCardProps) {
               <span className="capitalize">👥 {mosque.crowd_level}</span>
             )}
           </div>
+          <Link
+            href="/support"
+            onClick={(event) => event.stopPropagation()}
+            className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary transition-all duration-200 hover:border-primary/70 hover:bg-primary/20"
+          >
+            <Heart className="h-3 w-3" />
+            Support Us
+          </Link>
         </div>
       </div>
     </Card>

@@ -1,10 +1,11 @@
 'use client';
 
-import { ThumbsUp, Eye, MapPin, Zap } from 'lucide-react';
+import { ThumbsUp, Eye, MapPin, Zap, Heart } from 'lucide-react';
 import { Mosque } from '@/types';
 import { useState } from 'react';
 import { Card } from '@/components/ui/UiCard';
 import { Badge } from '@/components/ui/Badge';
+import Link from 'next/link';
 
 interface MosqueListItemProps {
   mosque: Mosque;
@@ -32,8 +33,18 @@ export function MosqueListItem({ mosque, onSelect, onUpvote, hasUpvoted }: Mosqu
     }
   };
 
+  const sessionDates = mosque.taraweeh_sessions
+    ? mosque.taraweeh_sessions
+        .map((session) => new Date(session.taraweeh_end_date).toLocaleDateString())
+        .join(", ")
+    : null;
   const endDate = mosque.taraweeh_sessions?.[0]?.taraweeh_end_date;
-  const daysRemaining = endDate ? Math.ceil((new Date(endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+  const daysRemaining = endDate
+    ? Math.ceil(
+        (new Date(endDate).getTime() - new Date().getTime()) /
+          (1000 * 60 * 60 * 24)
+      )
+    : null;
 
   const getCrowdColor = (level: string | undefined) => {
     switch (level) {
@@ -90,6 +101,12 @@ export function MosqueListItem({ mosque, onSelect, onUpvote, hasUpvoted }: Mosqu
                 After prayer @ {mosque.distribution_time}
               </Badge>
             )}
+
+            {sessionDates && (
+              <Badge variant="secondary" size="sm">
+                Sweets dates: {sessionDates}
+              </Badge>
+            )}
           </div>
         </div>
 
@@ -110,19 +127,31 @@ export function MosqueListItem({ mosque, onSelect, onUpvote, hasUpvoted }: Mosqu
             </div>
           </div>
 
-          {/* Upvote Button */}
-          <button
-            onClick={handleUpvote}
-            disabled={hasUpvoted || isUpvoting}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-              hasUpvoted
-                ? 'bg-primary/20 text-primary'
-                : 'bg-surface-light hover:bg-primary/10 text-text-secondary hover:text-primary active:scale-95'
-            }`}
-          >
-            <ThumbsUp className={`w-5 h-5 ${hasUpvoted ? 'fill-current' : ''}`} />
-            <span>{mosque.upvotes || 0}</span>
-          </button>
+          <div className="flex flex-col gap-2 items-end">
+            {/* Upvote Button */}
+            <button
+              onClick={handleUpvote}
+              disabled={hasUpvoted || isUpvoting}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                hasUpvoted
+                  ? 'bg-primary/20 text-primary'
+                  : 'bg-surface-light hover:bg-primary/10 text-text-secondary hover:text-primary active:scale-95'
+              }`}
+            >
+              <ThumbsUp className={`w-5 h-5 ${hasUpvoted ? 'fill-current' : ''}`} />
+              <span>{mosque.upvotes || 0}</span>
+            </button>
+
+            {/* Support Link */}
+            <Link
+              href="/support"
+              onClick={(event) => event.stopPropagation()}
+              className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-all duration-200 hover:border-primary/60 hover:bg-primary/20"
+            >
+              <Heart className="h-3.5 w-3.5" />
+              Support Us
+            </Link>
+          </div>
         </div>
       </div>
     </Card>
