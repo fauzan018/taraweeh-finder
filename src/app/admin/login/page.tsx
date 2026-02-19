@@ -12,27 +12,21 @@ export default function AdminLogin() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin";
-    
-    if (password === adminPassword) {
-      try {
-        const response = await fetch("/api/admin/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password }),
-        });
-        
-        if (response.ok) {
-          router.push("/admin");
-        } else {
-          setError("Login failed");
-        }
-      } catch (err) {
-        setError("An error occurred");
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+
+      if (response.ok) {
+        router.push("/admin");
+      } else {
+        const json = await response.json().catch(() => ({}));
+        setError(json?.error || "Login failed");
       }
-    } else {
-      setError("Incorrect password");
+    } catch (err) {
+      setError("An error occurred");
     }
     setLoading(false);
   };

@@ -7,6 +7,7 @@ import { LocationProvider, useLocation } from "@/components/LocationProvider";
 import RamadanCounter from "@/components/RamadanCounter";
 import { MosqueCardSkeleton, PageSkeletonGrid } from "@/components/Skeleton";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
@@ -95,7 +96,10 @@ export default function HomePage() {
                 </h1>
                 <p className="text-gray-500 mt-1 text-sm sm:text-base">Discover Taraweeh near you</p>
               </div>
-              <div className="hidden sm:block">
+              <div className="hidden sm:flex items-center gap-4">
+                <Link href="/submit" className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition-all duration-300">
+                  Submit Mosque
+                </Link>
                 <RamadanCounter />
               </div>
             </div>

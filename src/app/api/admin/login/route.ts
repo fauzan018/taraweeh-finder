@@ -4,15 +4,12 @@ export async function POST(request: NextRequest) {
   try {
     const { password } = await request.json();
     
-    // Get admin password from environment variable
-    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin";
-    
+    // Get admin password from server-side environment variable
+    const adminPassword = process.env.ADMIN_PASSWORD || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin";
+
     // Verify password
     if (password !== adminPassword) {
-      return NextResponse.json(
-        { error: "Incorrect password" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Incorrect password" }, { status: 401 });
     }
     
     // Create response with admin token cookie
