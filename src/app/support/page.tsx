@@ -66,21 +66,22 @@ export default function SupportPage() {
               <div className="rounded-3xl border border-border bg-surface/70 backdrop-blur-xl p-6 sm:p-8 flex flex-col justify-between">
                 <div>
                   <h3 className="text-2xl font-semibold text-text-primary mb-3">
-                    Prefer UPI ID?
+                    Every bit helps
                   </h3>
                   <p className="text-text-secondary mb-6">
-                    You can also pay directly using the UPI ID below in any UPI app.
+                    Scan the QR with any UPI app to support the project directly.
                   </p>
 
                   <div className="rounded-2xl border border-primary/30 bg-primary/10 px-5 py-4">
                     <p className="text-xs uppercase tracking-[0.25em] text-primary/70 font-semibold mb-2">
-                      UPI ID
+                      How it helps
                     </p>
-                    <p className="text-2xl font-bold text-text-primary">fauzan@fam</p>
+                    <p className="text-base text-text-primary">
+                      Support helps cover hosting and keeps the directory updated.
+                    </p>
                   </div>
 
                   <div className="mt-6 space-y-3 text-sm text-text-secondary">
-                    <p>Support helps cover hosting and keeps the directory updated.</p>
                     <p>Every contribution keeps the project accessible for the community.</p>
                   </div>
                 </div>
