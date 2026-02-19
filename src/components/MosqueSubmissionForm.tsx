@@ -58,21 +58,17 @@ export function MosqueSubmissionForm({ onSuccess, onError }: MosqueSubmissionFor
       if (!form.name || !form.address || !form.state || !form.city || !form.sweet_type || !form.googleMapsLink) {
         throw new Error("Please fill in all required fields, including a valid Google Maps link and sweet type");
       }
-      const { data: submission, error: submissionError } = await supabase
-        .from("mosque_submissions")
-        .insert([{ 
-          name: form.name,
-          address: form.address,
-          city: form.city,
-          state: form.state,
-          sweet_type: form.sweet_type,
-          distribution_time: form.distribution_time,
-          crowd_level: form.crowd_level,
-          status: 'pending',
-          taraweeh_end_date: taraweehDates[0],
-        }])
-        .select();
-      if (submissionError) throw submissionError;
+      // Submit via API route
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          taraweehDates,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to submit mosque");
       setSuccessMessage(`Thank you! Your mosque submission for "${form.name}" has been received and is pending review.`);
       setForm({
         name: "",
