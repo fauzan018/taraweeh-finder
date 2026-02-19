@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Eye, ThumbsUp, Building2, Clock, TrendingUp, ArrowUpRight } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
+import { Card } from '@/components/ui/UiCard';
 import { StatCard } from '@/components/StatCard';
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/UiButton';
 import { MosqueSubmissionForm } from '@/components/MosqueSubmissionForm';
 
 interface DashboardStats {

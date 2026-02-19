@@ -1,5 +1,5 @@
 "use client";
-import { Card } from '@/components/ui/Card';
+import { Card } from '@/components/ui/UiCard';
 import { Badge } from '@/components/ui/Badge';
 import { ReactNode } from "react";
 

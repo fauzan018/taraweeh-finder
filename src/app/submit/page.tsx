@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/UiButton";
 import { Input } from "@/components/ui/Input";
-import { Card } from "@/components/ui/Card";
+import { Card } from "@/components/ui/UiCard";
 import { Toast } from "@/components/ui/Toast";
 import { Navigation } from "@/components/Navigation";
 import { Plus, X, CheckCircle, AlertCircle } from "lucide-react";

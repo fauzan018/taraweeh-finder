@@ -3,7 +3,7 @@
 import { ThumbsUp, Eye, MapPin, Zap } from 'lucide-react';
 import { Mosque } from '@/types';
 import { useState } from 'react';
-import { Card } from '@/components/ui/Card';
+import { Card } from '@/components/ui/UiCard';
 import { Badge } from '@/components/ui/Badge';
 
 interface MosqueListItemProps {

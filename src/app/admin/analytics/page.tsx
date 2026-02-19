@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Mosque } from "@/types";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/UiCard";
+import { Button } from "@/components/ui/UiButton";
 import { Eye, ThumbsUp, Zap, TrendingUp } from "lucide-react";
 
 export default function AnalyticsPage() {

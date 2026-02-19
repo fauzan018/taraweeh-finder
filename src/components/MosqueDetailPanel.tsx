@@ -3,8 +3,8 @@
 import { X, MapPin, Users, Cake, Clock, Eye, ThumbsUp } from 'lucide-react';
 import { Mosque } from '@/types';
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/UiButton';
+import { Card } from '@/components/ui/UiCard';
 import { Badge } from '@/components/ui/Badge';
 
 interface MosqueDetailPanelProps {

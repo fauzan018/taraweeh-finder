@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Card } from '@/components/ui/Card';
+import { Card } from '@/components/ui/UiCard';
 
 interface TableColumn<T> {
   key: keyof T;
