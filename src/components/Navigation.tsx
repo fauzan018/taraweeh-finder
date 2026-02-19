@@ -11,6 +11,7 @@ interface NavigationProps {
   selectedLocation?: string;
 }
 
+// Navigation bar for Taraweeh Finder (demo change)
 export function Navigation({ onLocationChange, selectedLocation }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
