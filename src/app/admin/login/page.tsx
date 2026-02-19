@@ -25,7 +25,7 @@ export default function AdminLogin() {
         const json = await response.json().catch(() => ({}));
         setError(json?.error || "Login failed");
       }
-    } catch (err) {
+    } catch {
       setError("An error occurred");
     }
     setLoading(false);
@@ -47,12 +47,12 @@ export default function AdminLogin() {
               <h1 className="text-3xl font-bold text-white tracking-tight">
                 Admin Access
               </h1>
-              <p className="text-gray-500 text-sm">Secure authentication required</p>
+              <p className="text-text-secondary text-sm">Secure authentication required</p>
             </div>
 
             {/* Password Input */}
             <div className="space-y-2">
-              <label className="text-gray-300 text-sm font-medium block">
+              <label className="text-text-primary text-sm font-medium block">
                 Password
               </label>
               <div className="relative group">
@@ -62,7 +62,7 @@ export default function AdminLogin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
-                  className="w-full rounded-lg p-3 bg-[var(--surface)] hover:bg-[var(--card)] border border-[var(--card)] focus:border-[var(--card)] text-white placeholder-gray-500 focus:outline-none transition-all duration-300 disabled:opacity-50"
+                  className="w-full rounded-lg p-3 bg-[var(--surface)] hover:bg-[var(--card)] border border-border focus:border-primary text-white placeholder-text-secondary focus:outline-none transition-all duration-300 disabled:opacity-50"
                 />
               </div>
             </div>

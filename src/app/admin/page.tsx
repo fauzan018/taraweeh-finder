@@ -8,6 +8,7 @@ import { StatCard } from '@/components/StatCard';
 import Link from 'next/link';
 import { Button } from '@/components/ui/UiButton';
 import { MosqueSubmissionForm } from '@/components/MosqueSubmissionForm';
+import { Mosque } from '@/types';
 
 interface DashboardStats {
   totalMosques: number;
@@ -24,7 +25,7 @@ export default function AdminDashboard() {
     pendingSubmissions: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [topMosques, setTopMosques] = useState<any[]>([]);
+  const [topMosques, setTopMosques] = useState<Mosque[]>([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -36,12 +37,30 @@ export default function AdminDashboard() {
           .select('*, taraweeh_sessions(*)');
 
         // Fetch pending submissions
-        const { data: pending, error: pendingError } = await supabase
+        let pendingCount = 0;
+        const pendingSubmissionsResult = await supabase
           .from('mosque_submissions')
           .select('*')
           .eq('status', 'pending');
 
-        if (approvedError || pendingError) throw new Error('Failed to fetch data');
+        if (!pendingSubmissionsResult.error) {
+          pendingCount = pendingSubmissionsResult.data?.length || 0;
+        } else if (pendingSubmissionsResult.error.code === '42P01') {
+          const pendingMosquesResult = await supabase
+            .from('pending_mosques')
+            .select('*')
+            .is('approved_at', null);
+
+          if (pendingMosquesResult.error) {
+            throw pendingMosquesResult.error;
+          }
+
+          pendingCount = pendingMosquesResult.data?.length || 0;
+        } else {
+          throw pendingSubmissionsResult.error;
+        }
+
+        if (approvedError) throw new Error('Failed to fetch data');
 
         const totalMosques = approved?.length || 0;
         const totalViews = approved?.reduce((sum, m) => sum + (m.views || 0), 0) || 0;
@@ -51,7 +70,7 @@ export default function AdminDashboard() {
           totalMosques,
           totalViews,
           totalUpvotes,
-          pendingSubmissions: pending?.length || 0,
+          pendingSubmissions: pendingCount,
         });
 
         // Get top 5 mosques by views
@@ -229,7 +248,7 @@ export default function AdminDashboard() {
           </Card>
 
           {/* Submission Form Card */}
-          <MosqueSubmissionForm />
+          <MosqueSubmissionForm submissionTarget="approved" />
 
           {/* System Health */}
           <Card

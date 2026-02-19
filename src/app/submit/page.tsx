@@ -1,4 +1,3 @@
-"use client";
 import { MosqueSubmissionForm } from '@/components/MosqueSubmissionForm';
 
 export default function SubmitMosquePage() {

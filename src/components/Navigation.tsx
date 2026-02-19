@@ -5,14 +5,24 @@ import RamadanCounter from './RamadanCounter';
 import { Button } from '@/components/ui/UiButton';
 import Link from 'next/link';
 import { useState } from 'react';
+import { INDIA_STATES } from '@/lib/constants';
 
 interface NavigationProps {
   onLocationChange?: (state: string) => void;
   selectedLocation?: string;
+  onCityChange?: (city: string) => void;
+  selectedCity?: string;
+  cities?: string[];
 }
 
 // Navigation bar for Taraweeh Finder (demo change)
-export function Navigation({ onLocationChange, selectedLocation }: NavigationProps) {
+export function Navigation({
+  onLocationChange,
+  selectedLocation,
+  onCityChange,
+  selectedCity,
+  cities = [],
+}: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -39,23 +49,41 @@ export function Navigation({ onLocationChange, selectedLocation }: NavigationPro
             {/* Location Selector & Navigation */}
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2">
-                {/* Location Selector */}
+                {/* State Selector */}
                 <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface border border-border hover:border-border-light transition-colors">
                   <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
                   <select
                     className="bg-transparent text-sm text-text-primary focus:outline-none cursor-pointer appearance-none"
                     onChange={(e) => onLocationChange?.(e.target.value)}
-                    defaultValue={selectedLocation || ''}
+                    value={selectedLocation || ''}
+                    aria-label="Filter by state"
                   >
                     <option value="">All States</option>
-                    <option value="Delhi">Delhi</option>
-                    <option value="Maharashtra">Maharashtra</option>
-                    <option value="Karnataka">Karnataka</option>
-                    <option value="Tamil Nadu">Tamil Nadu</option>
-                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                    {INDIA_STATES.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
+                {/* City Selector */}
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface border border-border hover:border-border-light transition-colors">
+                  <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+                  <select
+                    className="bg-transparent text-sm text-text-primary focus:outline-none cursor-pointer appearance-none min-w-[8rem]"
+                    onChange={(e) => onCityChange?.(e.target.value)}
+                    value={selectedCity || ''}
+                    aria-label="Filter by city"
+                  >
+                    <option value="">All Cities</option>
+                    {cities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 {/* Submit Link */}
                 <Link href="/submit">
@@ -73,6 +101,7 @@ export function Navigation({ onLocationChange, selectedLocation }: NavigationPro
               <button
                 className="sm:hidden p-2 rounded-lg hover:bg-surface transition-colors"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               >
                 <Menu className="w-5 h-5 text-text-primary" />
               </button>
@@ -88,16 +117,32 @@ export function Navigation({ onLocationChange, selectedLocation }: NavigationPro
                   className="bg-transparent text-sm text-text-primary focus:outline-none cursor-pointer appearance-none flex-1"
                   onChange={(e) => {
                     onLocationChange?.(e.target.value);
-                    setMobileMenuOpen(false);
                   }}
-                  defaultValue={selectedLocation || ''}
+                  value={selectedLocation || ''}
+                  aria-label="Filter by state"
                 >
                   <option value="">All States</option>
-                  <option value="Delhi">Delhi</option>
-                  <option value="Maharashtra">Maharashtra</option>
-                  <option value="Karnataka">Karnataka</option>
-                  <option value="Tamil Nadu">Tamil Nadu</option>
-                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  {INDIA_STATES.map((state) => (
+                    <option key={state} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface border border-border">
+                <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+                <select
+                  className="bg-transparent text-sm text-text-primary focus:outline-none cursor-pointer appearance-none flex-1"
+                  onChange={(e) => onCityChange?.(e.target.value)}
+                  value={selectedCity || ''}
+                  aria-label="Filter by city"
+                >
+                  <option value="">All Cities</option>
+                  {cities.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="grid grid-cols-1 gap-2">

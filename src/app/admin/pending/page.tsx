@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Check, X, MapPin, Calendar, Cake } from 'lucide-react';
 
+type PendingSource = 'mosque_submissions' | 'pending_mosques';
+
 interface Submission {
   id: string;
   name: string;
@@ -15,8 +17,21 @@ interface Submission {
   sweet_type: string;
   distribution_time: string;
   crowd_level: string;
-  taraweeh_end_date: string;
+  taraweeh_end_date?: string | null;
+  taraweeh_dates?: string[] | null;
   created_at: string;
+}
+
+function getSubmissionDates(submission: Submission) {
+  if (Array.isArray(submission.taraweeh_dates) && submission.taraweeh_dates.length > 0) {
+    return submission.taraweeh_dates.filter(Boolean);
+  }
+
+  if (submission.taraweeh_end_date) {
+    return [submission.taraweeh_end_date];
+  }
+
+  return [];
 }
 
 export default function PendingSubmissions() {
@@ -24,19 +39,40 @@ export default function PendingSubmissions() {
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<string | null>(null);
+  const [source, setSource] = useState<PendingSource>('mosque_submissions');
 
   useEffect(() => {
     const fetchPending = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        const submissionsResult = await supabase
           .from('mosque_submissions')
           .select('*')
           .eq('status', 'pending')
           .order('created_at', { ascending: false });
-        
-        if (error) throw error;
-        setPending(data || []);
+
+        if (!submissionsResult.error) {
+          setSource('mosque_submissions');
+          setPending((submissionsResult.data as Submission[]) || []);
+          return;
+        }
+
+        if (submissionsResult.error.code !== '42P01') {
+          throw submissionsResult.error;
+        }
+
+        const pendingMosquesResult = await supabase
+          .from('pending_mosques')
+          .select('*')
+          .is('approved_at', null)
+          .order('created_at', { ascending: false });
+
+        if (pendingMosquesResult.error) {
+          throw pendingMosquesResult.error;
+        }
+
+        setSource('pending_mosques');
+        setPending((pendingMosquesResult.data as Submission[]) || []);
       } catch (error) {
         console.error('Failed to fetch pending submissions:', error);
       } finally {
@@ -49,33 +85,71 @@ export default function PendingSubmissions() {
   const handleApprove = async (submission: Submission) => {
     setApproving(submission.id);
     try {
-      // Add to approved_mosques
-      const { error: insertError } = await supabase.from('approved_mosques').insert([
-        {
-          name: submission.name,
-          address: submission.address,
-          city: submission.city,
-          state: submission.state,
-          latitude: submission.latitude,
-          longitude: submission.longitude,
-          sweet_type: submission.sweet_type,
-          distribution_time: submission.distribution_time,
-          crowd_level: submission.crowd_level,
-          upvotes: 0,
-          views: 0,
-          approved_at: new Date().toISOString(),
-        },
-      ]);
+      const { data: insertedMosque, error: insertError } = await supabase
+        .from('approved_mosques')
+        .insert([
+          {
+            name: submission.name,
+            address: submission.address,
+            city: submission.city,
+            state: submission.state,
+            latitude: Number(submission.latitude),
+            longitude: Number(submission.longitude),
+            sweet_type: submission.sweet_type,
+            distribution_time: submission.distribution_time,
+            crowd_level: submission.crowd_level,
+            upvotes: 0,
+            views: 0,
+            approved_at: new Date().toISOString(),
+          },
+        ])
+        .select('id')
+        .single();
 
-      if (insertError) throw insertError;
+      if (insertError || !insertedMosque) throw insertError || new Error('Missing mosque id');
 
-      // Update submission status
-      await supabase
-        .from('mosque_submissions')
-        .update({ status: 'approved' })
-        .eq('id', submission.id);
+      let sessionDates = getSubmissionDates(submission);
 
-      // Remove from pending
+      if (source === 'pending_mosques' && sessionDates.length === 0) {
+        const { data: pendingSessions, error: pendingSessionsError } = await supabase
+          .from('pending_taraweeh_sessions')
+          .select('taraweeh_end_date, session_number')
+          .eq('mosque_id', submission.id)
+          .order('session_number', { ascending: true });
+
+        if (!pendingSessionsError && pendingSessions && pendingSessions.length > 0) {
+          sessionDates = pendingSessions.map((session) => session.taraweeh_end_date);
+        }
+      }
+
+      if (sessionDates.length > 0) {
+        const { error: sessionInsertError } = await supabase.from('taraweeh_sessions').insert(
+          sessionDates.map((date, index) => ({
+            mosque_id: insertedMosque.id,
+            taraweeh_end_date: date,
+            session_number: index + 1,
+          }))
+        );
+
+        if (sessionInsertError) throw sessionInsertError;
+      }
+
+      if (source === 'mosque_submissions') {
+        const { error: updateError } = await supabase
+          .from('mosque_submissions')
+          .update({ status: 'approved' })
+          .eq('id', submission.id);
+
+        if (updateError) throw updateError;
+      } else {
+        const { error: updateError } = await supabase
+          .from('pending_mosques')
+          .update({ approved_at: new Date().toISOString() })
+          .eq('id', submission.id);
+
+        if (updateError) throw updateError;
+      }
+
       setPending((prev) => prev.filter((m) => m.id !== submission.id));
     } catch (error) {
       console.error('Failed to approve submission:', error);
@@ -87,12 +161,18 @@ export default function PendingSubmissions() {
   const handleReject = async (id: string) => {
     setRejecting(id);
     try {
-      const { error } = await supabase
-        .from('mosque_submissions')
-        .update({ status: 'rejected' })
-        .eq('id', id);
+      if (source === 'mosque_submissions') {
+        const { error } = await supabase
+          .from('mosque_submissions')
+          .update({ status: 'rejected' })
+          .eq('id', id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('pending_mosques').delete().eq('id', id);
+
+        if (error) throw error;
+      }
 
       setPending((prev) => prev.filter((m) => m.id !== id));
     } catch (error) {
@@ -145,7 +225,7 @@ export default function PendingSubmissions() {
                       <p className="text-sm text-text-secondary mt-1">Submitted: {new Date(submission.created_at).toLocaleDateString()}</p>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2 text-sm">
                     <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
                       <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />

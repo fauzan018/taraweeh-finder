@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/UiCard';
 interface TableColumn<T> {
   key: keyof T;
   label: string;
-  render?: (value: any, row: T) => React.ReactNode;
+  render?: (value: T[keyof T], row: T) => React.ReactNode;
   width?: string;
   sortable?: boolean;
 }

@@ -405,5 +405,24 @@ label {
    ========================================================================== */
 
 :root {
+  --background: #020617;
+  --surface: #0b1220;
+  --card: #111827;
+  --primary: #22c55e;
   color-scheme: dark;
+}
+
+.leaflet-container {
+  background: #0b1220;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #0f172a;
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.leaflet-popup-close-button {
+  color: #9ca3af !important;
 }

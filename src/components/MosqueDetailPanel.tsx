@@ -2,7 +2,6 @@
 
 import { X, MapPin, Users, Cake, Clock, Eye, ThumbsUp } from 'lucide-react';
 import { Mosque } from '@/types';
-import { useState } from 'react';
 import { Button } from '@/components/ui/UiButton';
 import { Card } from '@/components/ui/UiCard';
 import { Badge } from '@/components/ui/Badge';
@@ -10,17 +9,21 @@ import { Badge } from '@/components/ui/Badge';
 interface MosqueDetailPanelProps {
   mosque: Mosque | null;
   onClose: () => void;
+  onUpvote?: (mosque: Mosque) => Promise<void>;
+  hasUpvoted?: boolean;
 }
 
-export function MosqueDetailPanel({ mosque, onClose }: MosqueDetailPanelProps) {
-  const [hasUpvoted, setHasUpvoted] = useState(false);
-
+export function MosqueDetailPanel({
+  mosque,
+  onClose,
+  onUpvote,
+  hasUpvoted = false,
+}: MosqueDetailPanelProps) {
   if (!mosque) return null;
 
   const handleUpvote = async () => {
     if (hasUpvoted) return;
-    setHasUpvoted(true);
-    // TODO: Update upvote in database
+    await onUpvote?.(mosque);
   };
 
   const endDate = mosque.taraweeh_sessions?.[0]?.taraweeh_end_date;
@@ -50,6 +53,7 @@ export function MosqueDetailPanel({ mosque, onClose }: MosqueDetailPanelProps) {
               <button
                 onClick={onClose}
                 className="ml-4 p-2 hover:bg-white/10 rounded-lg transition-smooth"
+                aria-label="Close detail panel"
               >
                 <X className="w-6 h-6 text-text-secondary" />
               </button>
@@ -107,7 +111,7 @@ export function MosqueDetailPanel({ mosque, onClose }: MosqueDetailPanelProps) {
                 className="flex items-center justify-center gap-2"
               >
                 <ThumbsUp className={`w-5 h-5 ${hasUpvoted ? 'fill-current' : ''}`} />
-                {hasUpvoted ? 'Upvoted!' : 'Upvote This Mosque'}
+                {hasUpvoted ? `Upvoted • ${mosque.upvotes || 0}` : `Upvote (${mosque.upvotes || 0})`}
               </Button>
               <Button
                 variant="secondary"
@@ -138,6 +142,7 @@ export function MosqueDetailPanel({ mosque, onClose }: MosqueDetailPanelProps) {
               <button
                 onClick={onClose}
                 className="ml-4 p-2 hover:bg-white/10 rounded-lg transition-smooth flex-shrink-0"
+                aria-label="Close detail panel"
               >
                 <X className="w-6 h-6 text-text-secondary" />
               </button>
@@ -195,7 +200,7 @@ export function MosqueDetailPanel({ mosque, onClose }: MosqueDetailPanelProps) {
                 className="flex items-center justify-center gap-2"
               >
                 <ThumbsUp className={`w-5 h-5 ${hasUpvoted ? 'fill-current' : ''}`} />
-                {hasUpvoted ? 'Upvoted!' : 'Upvote This Mosque'}
+                {hasUpvoted ? `Upvoted • ${mosque.upvotes || 0}` : `Upvote (${mosque.upvotes || 0})`}
               </Button>
               <Button
                 variant="secondary"

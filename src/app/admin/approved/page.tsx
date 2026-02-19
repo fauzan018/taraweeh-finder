@@ -19,26 +19,23 @@ export default function ApprovedMasjids() {
     const fetchMosques = async () => {
       setLoading(true);
       try {
-        const { data: mosquesData, error } = await supabase.from('approved_mosques').select('*');
+        const { data: mosquesData, error } = await supabase
+          .from('approved_mosques')
+          .select('*, taraweeh_sessions(*)');
         
         if (error) throw error;
         
         if (mosquesData) {
-          const mosquesWithSessions = await Promise.all(
-            mosquesData.map(async (mosque) => {
-              const { data: sessions } = await supabase
-                .from('taraweeh_sessions')
-                .select('*')
-                .eq('mosque_id', mosque.id)
-                .order('session_number', { ascending: true });
-              
-              return {
-                ...mosque,
-                taraweeh_sessions: sessions || [],
-              };
-            })
+          const typedMosques = mosquesData as MosqueWithSessions[];
+          setMosques(
+            typedMosques.map((mosque) => ({
+              ...mosque,
+              taraweeh_sessions: (mosque.taraweeh_sessions || []).sort(
+                (a: TaraweehSession, b: TaraweehSession) =>
+                  a.session_number - b.session_number
+              ),
+            })) as MosqueWithSessions[]
           );
-          setMosques(mosquesWithSessions);
         }
       } catch (error) {
         console.error('Failed to fetch mosques:', error);

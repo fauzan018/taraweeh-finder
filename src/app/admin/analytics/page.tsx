@@ -25,7 +25,11 @@ export default function AnalyticsPage() {
     fetchMosques();
   }, []);
 
-  const sorted = [...mosques].sort((a, b) => (sort === "views" ? b.views - a.views : b.upvotes - a.upvotes));
+  const sorted = [...mosques].sort((a, b) =>
+    sort === "views"
+      ? (b.views || 0) - (a.views || 0)
+      : (b.upvotes || 0) - (a.upvotes || 0)
+  );
   const totalViews = mosques.reduce((sum, m) => sum + (m.views || 0), 0);
   const totalUpvotes = mosques.reduce((sum, m) => sum + (m.upvotes || 0), 0);
   const averageViews = mosques.length > 0 ? Math.round(totalViews / mosques.length) : 0;
@@ -130,11 +134,15 @@ export default function AnalyticsPage() {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Rank</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Mosque</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">City</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-text-secondary uppercase tracking-wider flex items-center justify-end gap-1">
-                    <Eye className="w-3 h-3" /> Views
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                    <span className="inline-flex items-center justify-end gap-1">
+                      <Eye className="w-3 h-3" /> Views
+                    </span>
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-text-secondary uppercase tracking-wider flex items-center justify-end gap-1">
-                    <ThumbsUp className="w-3 h-3" /> Upvotes
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                    <span className="inline-flex items-center justify-end gap-1">
+                      <ThumbsUp className="w-3 h-3" /> Upvotes
+                    </span>
                   </th>
                 </tr>
               </thead>

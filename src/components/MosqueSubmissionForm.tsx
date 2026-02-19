@@ -1,22 +1,29 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/UiButton";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/UiCard";
 import { Toast } from "@/components/ui/Toast";
+import { Select } from "@/components/ui/Select";
 import { Plus, X } from "lucide-react";
+import { INDIA_STATES } from "@/lib/constants";
 
 interface MosqueSubmissionFormProps {
   onSuccess?: (msg: string) => void;
   onError?: (msg: string) => void;
+  submissionTarget?: "pending" | "approved";
 }
 
-export function MosqueSubmissionForm({ onSuccess, onError }: MosqueSubmissionFormProps) {
+export function MosqueSubmissionForm({
+  onSuccess,
+  onError,
+  submissionTarget = "pending",
+}: MosqueSubmissionFormProps) {
   const [form, setForm] = useState({
     name: "",
     address: "",
     city: "",
+    state: "",
     googleMapsLink: "",
     sweet_type: "",
     distribution_time: "",
@@ -54,8 +61,8 @@ export function MosqueSubmissionForm({ onSuccess, onError }: MosqueSubmissionFor
     setSuccessMessage(null);
     setErrorMessage(null);
     try {
-      if (!form.name || !form.address || !form.city || !form.sweet_type) {
-        throw new Error("Please fill in all required fields, including sweet type");
+      if (!form.name || !form.address || !form.city || !form.state || !form.sweet_type || !form.googleMapsLink) {
+        throw new Error("Please fill in all required fields, including state and Google Maps link");
       }
       // Submit via API route
       const response = await fetch("/api/submit", {
@@ -64,15 +71,21 @@ export function MosqueSubmissionForm({ onSuccess, onError }: MosqueSubmissionFor
         body: JSON.stringify({
           ...form,
           taraweehDates,
+          target: submissionTarget,
         }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Failed to submit mosque");
-      setSuccessMessage(`Thank you! Your mosque submission for "${form.name}" has been received and is pending review.`);
+      setSuccessMessage(
+        submissionTarget === "approved"
+          ? `Mosque \"${form.name}\" was added successfully.`
+          : `Thank you! Your mosque submission for \"${form.name}\" has been received and is pending review.`
+      );
       setForm({
         name: "",
         address: "",
         city: "",
+        state: "",
         googleMapsLink: "",
         sweet_type: "",
         distribution_time: "",
@@ -98,9 +111,20 @@ export function MosqueSubmissionForm({ onSuccess, onError }: MosqueSubmissionFor
           <h2 className="text-2xl font-bold text-text-primary mb-8 tracking-tight">Location & Sweets</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Input required label="Mosque Name" name="name" value={form.name} onChange={handleChange} placeholder="e.g., Al-Salaam Mosque" />
-            <Input required label="City" name="city" value={form.city} onChange={handleChange} placeholder="e.g., Delhi" />
+            <Input required label="City" name="city" value={form.city} onChange={handleChange} placeholder="e.g., Lucknow" />
+            <Select
+              required
+              label="State"
+              name="state"
+              value={form.state}
+              onChange={handleChange}
+              options={[
+                { value: "", label: "Select a state" },
+                ...INDIA_STATES.map((state) => ({ value: state, label: state })),
+              ]}
+            />
             <Input required label="Address" name="address" value={form.address} onChange={handleChange} placeholder="Full address" />
-            <Input label="Google Maps Link (Optional)" name="googleMapsLink" value={form.googleMapsLink} onChange={handleChange} placeholder="Paste Google Maps link here" />
+            <Input required label="Google Maps Link" name="googleMapsLink" value={form.googleMapsLink} onChange={handleChange} placeholder="Paste Google Maps link with coordinates" />
             <Input required label="Sweet Type" name="sweet_type" value={form.sweet_type} onChange={handleChange} placeholder="e.g., Laddoo, Balushahi" />
           </div>
         </section>

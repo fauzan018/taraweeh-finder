@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -6,9 +7,8 @@ import { Mosque } from "@/types";
 
 const darkTiles = "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png";
 
-// Custom green glowing marker
-const createGlowingMarker = () => {
-  const html = `
+const glowingMarker = L.divIcon({
+  html: `
     <div style="
       position: relative;
       width: 32px;
@@ -42,22 +42,22 @@ const createGlowingMarker = () => {
         🕌
       </div>
     </div>
-    <style>
-      @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.2); opacity: 0.5; }
-      }
-    </style>
-  `;
-  
-  return L.divIcon({
-    html,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -16],
-    className: 'custom-marker',
-  });
-};
+  `,
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+  popupAnchor: [0, -16],
+  className: "custom-marker",
+});
+
+function MapCenterUpdater({ center }: { center: [number, number] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    map.setView(center);
+  }, [center, map]);
+
+  return null;
+}
 
 export default function MapView({ mosques, center, onMarkerClick }: { 
   mosques: Mosque[]; 
@@ -65,7 +65,7 @@ export default function MapView({ mosques, center, onMarkerClick }: {
   onMarkerClick?: (mosque: Mosque) => void;
 }) {
   return (
-    <div className="w-full h-screen rounded-none md:rounded-xl overflow-hidden shadow-xl md:mb-6 relative">
+    <div className="w-full h-full rounded-none md:rounded-xl overflow-hidden shadow-xl md:mb-6 relative">
       <MapContainer 
         center={center} 
         zoom={5} 
@@ -73,6 +73,7 @@ export default function MapView({ mosques, center, onMarkerClick }: {
         className="w-full h-full"
         style={{ zIndex: 10 }}
       >
+        <MapCenterUpdater center={center} />
         <TileLayer 
           url={darkTiles}
           attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
@@ -81,12 +82,12 @@ export default function MapView({ mosques, center, onMarkerClick }: {
           <Marker 
             key={m.id} 
             position={[m.latitude, m.longitude]} 
-            icon={createGlowingMarker()}
+            icon={glowingMarker}
             eventHandlers={{
               click: () => onMarkerClick?.(m),
             }}
           >
-            <Popup className="custom-popup">
+            <Popup className="custom-popup" autoPanPadding={[24, 24]}>
               <div className="text-text-primary">
                 <strong className="text-base">{m.name}</strong>
                 <br className="my-1" />
@@ -109,4 +110,3 @@ export default function MapView({ mosques, center, onMarkerClick }: {
     </div>
   );
 }
-

@@ -9,12 +9,11 @@ import { Badge } from '@/components/ui/Badge';
 interface MosqueListItemProps {
   mosque: Mosque;
   onSelect: (mosque: Mosque) => void;
-  onUpvote?: (mosqueName: string, currentUpvotes: number) => Promise<void>;
+  onUpvote?: (mosque: Mosque) => Promise<void>;
+  hasUpvoted: boolean;
 }
 
-export function MosqueListItem({ mosque, onSelect, onUpvote }: MosqueListItemProps) {
-  const [upvotes, setUpvotes] = useState(mosque.upvotes || 0);
-  const [hasUpvoted, setHasUpvoted] = useState(false);
+export function MosqueListItem({ mosque, onSelect, onUpvote, hasUpvoted }: MosqueListItemProps) {
   const [isUpvoting, setIsUpvoting] = useState(false);
 
   const handleUpvote = async (e: React.MouseEvent) => {
@@ -23,16 +22,10 @@ export function MosqueListItem({ mosque, onSelect, onUpvote }: MosqueListItemPro
 
     setIsUpvoting(true);
     try {
-      const newUpvotes = upvotes + 1;
-      setUpvotes(newUpvotes);
-      setHasUpvoted(true);
-      
       if (onUpvote) {
-        await onUpvote(mosque.name, newUpvotes);
+        await onUpvote(mosque);
       }
     } catch (error) {
-      setUpvotes(upvotes);
-      setHasUpvoted(false);
       console.error('Failed to upvote:', error);
     } finally {
       setIsUpvoting(false);
@@ -128,7 +121,7 @@ export function MosqueListItem({ mosque, onSelect, onUpvote }: MosqueListItemPro
             }`}
           >
             <ThumbsUp className={`w-5 h-5 ${hasUpvoted ? 'fill-current' : ''}`} />
-            <span>{upvotes}</span>
+            <span>{mosque.upvotes || 0}</span>
           </button>
         </div>
       </div>
@@ -140,7 +133,8 @@ interface MosqueListProps {
   mosques: Mosque[];
   onSelectMosque: (mosque: Mosque) => void;
   isLoading?: boolean;
-  onUpvote?: (mosqueName: string, currentUpvotes: number) => Promise<void>;
+  onUpvote?: (mosque: Mosque) => Promise<void>;
+  upvotedMosqueIds?: Set<string>;
   emptyMessage?: string;
 }
 
@@ -149,6 +143,7 @@ export function MosqueList({
   onSelectMosque,
   isLoading,
   onUpvote,
+  upvotedMosqueIds = new Set(),
   emptyMessage = 'No mosques found in your area',
 }: MosqueListProps) {
   if (isLoading) {
@@ -179,6 +174,7 @@ export function MosqueList({
           mosque={mosque}
           onSelect={onSelectMosque}
           onUpvote={onUpvote}
+          hasUpvoted={upvotedMosqueIds.has(mosque.id)}
         />
       ))}
     </div>
