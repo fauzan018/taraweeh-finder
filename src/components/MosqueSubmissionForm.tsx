@@ -72,7 +72,6 @@ export function MosqueSubmissionForm({ onSuccess, onError }: MosqueSubmissionFor
       setForm({
         name: "",
         address: "",
-        state: "",
         city: "",
         googleMapsLink: "",
         sweet_type: "",

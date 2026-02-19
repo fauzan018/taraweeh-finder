@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-function extractLatLng(link) {
+function extractLatLng(link: string) {
   // Accepts ?q=lat,lng or @lat,lng
   const q = /[?&]q=([-\d.]+),([-\d.]+)/;
   const at = /@([-\d.]+),([-\d.]+)/;
@@ -11,7 +11,7 @@ function extractLatLng(link) {
   return { latitude: parseFloat(m[1]), longitude: parseFloat(m[2]) };
 }
 
-export async function POST(req) {
+export async function POST(req: Request) {
   try {
     const data = await req.json();
     const { name, address, city, googleMapsLink, sweet_type, distribution_time, crowd_level, taraweehDates } = data;
@@ -54,6 +54,10 @@ export async function POST(req) {
     }
     return NextResponse.json({ success: true });
   } catch (e) {
-    return NextResponse.json({ error: e?.message || "Unknown error" }, { status: 500 });
+    let errorMsg = "Unknown error";
+    if (typeof e === "object" && e && "message" in e) {
+      errorMsg = (e as any).message;
+    }
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
