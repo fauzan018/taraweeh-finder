@@ -1,14 +1,17 @@
-
 "use client";
+
 import { supabase } from "@/lib/supabase";
 import { Mosque } from "@/types";
-import { MosqueCard } from "@/components/MosqueCard";
 import { LocationProvider, useLocation } from "@/components/LocationProvider";
-import RamadanCounter from "@/components/RamadanCounter";
-import { MosqueCardSkeleton, PageSkeletonGrid } from "@/components/Skeleton";
+import { Navigation } from "@/components/Navigation";
+import { MosqueList } from "@/components/MosqueListView";
+import { MosqueDetailPanel } from "@/components/MosqueDetailPanel";
+import { DEFAULT_CENTER, STATE_COORDINATES } from "@/lib/constants";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { ArrowDown } from "lucide-react";
+
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 function distance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -24,17 +27,22 @@ function distance(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * c;
 }
 
-export default function HomePage() {
+function HomeContent() {
   const { location } = useLocation();
   const [mosques, setMosques] = useState<Mosque[]>([]);
   const [sorted, setSorted] = useState<Mosque[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
+  const [selectedState, setSelectedState] = useState<string>("");
+  const [mapCenter, setMapCenter] = useState<[number, number]>(DEFAULT_CENTER);
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('list');
 
+  // Fetch all mosques
   useEffect(() => {
     const fetchMosques = async () => {
       setLoading(true);
       const { data } = await supabase.from("approved_mosques").select("*");
-      
+
       if (data && data.length > 0) {
         const mosquesWithSessions = await Promise.all(
           data.map(async (mosque) => {
@@ -43,7 +51,7 @@ export default function HomePage() {
               .select("*")
               .eq("mosque_id", mosque.id)
               .order("session_number", { ascending: true });
-            
+
             return {
               ...mosque,
               taraweeh_sessions: sessions || [],
@@ -57,126 +65,214 @@ export default function HomePage() {
     fetchMosques();
   }, []);
 
+  // Sort and filter mosques
   useEffect(() => {
-    if (!location || mosques.length === 0) {
-      setSorted(mosques);
-      return;
+    let filtered = mosques;
+
+    // Filter by state if selected
+    if (selectedState) {
+      filtered = filtered.filter((m) => m.state === selectedState);
+      setMapCenter(STATE_COORDINATES[selectedState] || DEFAULT_CENTER);
+    } else {
+      setMapCenter(DEFAULT_CENTER);
     }
-    const { latitude, longitude } = location.coords;
-    const sortedMosques = [...mosques].sort((a, b) => {
-      const d1 = distance(latitude, longitude, a.latitude, a.longitude);
-      const d2 = distance(latitude, longitude, b.latitude, b.longitude);
-      return d1 - d2;
-    });
-    setSorted(sortedMosques);
-  }, [location, mosques]);
 
-  const handleUpvote = (id: string) => {
+    // Sort by distance if location available
+    if (location) {
+      const { latitude, longitude } = location.coords;
+      filtered = [...filtered].sort((a, b) => {
+        const d1 = distance(latitude, longitude, a.latitude, a.longitude);
+        const d2 = distance(latitude, longitude, b.latitude, b.longitude);
+        return d1 - d2;
+      });
+    }
+
+    setSorted(filtered);
+  }, [location, mosques, selectedState]);
+
+  const handleLocationChange = (state: string) => {
+    setSelectedState(state);
+  };
+
+  const handleUpvote = async (mosqueName: string, newUpvotes: number) => {
+    // TODO: Update in database
     setMosques((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, upvotes: m.upvotes + 1 } : m))
+      prev.map((m) =>
+        m.name === mosqueName ? { ...m, upvotes: newUpvotes } : m
+      )
     );
   };
 
-  const handleView = (id: string) => {
+  const handleSelectMosque = (mosque: Mosque) => {
+    setSelectedMosque(mosque);
+    // Increment views
     setMosques((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, views: m.views + 1 } : m))
+      prev.map((m) =>
+        m.id === mosque.id ? { ...m, views: (m.views || 0) + 1 } : m
+      )
     );
   };
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   return (
-    <LocationProvider>
-      <main className="min-h-screen bg-gradient-to-b from-[#05050f] via-[#0a0a14] to-[#05050f]">
-        {/* Header Section */}
-        <div className="border-b border-white/5 backdrop-blur-xl bg-white/2">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h1 className="text-4xl sm:text-5xl font-bold text-white">
-                  Taraweeh Finder
-                </h1>
-                <p className="text-gray-500 mt-1 text-sm sm:text-base">Discover Taraweeh near you</p>
-              </div>
-              <div className="hidden sm:flex items-center gap-4">
-                <Link href="/submit" className="px-4 py-2 bg-[var(--card)] hover:bg-[var(--card)] text-white rounded-lg font-semibold transition-all duration-300">
-                  Submit Mosque
-                </Link>
-                <RamadanCounter />
-              </div>
-            </div>
-            <div className="sm:hidden mt-4">
-              <RamadanCounter />
+    <>
+      {/* Navigation Bar */}
+      <Navigation
+        onLocationChange={handleLocationChange}
+        selectedLocation={selectedState}
+      />
+
+      {/* Main Content */}
+      <main className="bg-background pt-24 min-h-screen">
+        {/* Hero Section with Map */}
+        <div className="relative w-full h-[60vh] md:h-[60vh] overflow-hidden rounded-3xl shadow-xl mb-12">
+          {mounted && (
+            <MapView
+              mosques={sorted}
+              center={mapCenter}
+              onMarkerClick={handleSelectMosque}
+            />
+          )}
+
+          {/* View Mode Toggle */}
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20">
+            <div className="bg-surface/80 backdrop-blur-md border border-border rounded-xl px-2 py-2 flex gap-2 shadow-lg">
+              <button
+                onClick={() => setViewMode('map')}
+                className={`px-6 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
+                  viewMode === 'map'
+                    ? 'bg-primary text-surface-light shadow-md'
+                    : 'text-text-primary hover:bg-white/10'
+                }`}
+              >
+                🗺️ Map
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-6 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
+                  viewMode === 'list'
+                    ? 'bg-primary text-surface-light shadow-md'
+                    : 'text-text-primary hover:bg-white/10'
+                }`}
+              >
+                📋 List
+              </button>
             </div>
           </div>
+
+          {/* Scroll Indicator */}
+          {viewMode === 'map' && (
+            <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-20 animate-bounce">
+              <ArrowDown className="w-6 h-6 text-primary" />
+            </div>
+          )}
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          {/* Mosques List Section */}
-          <div className="mb-12">
-            <div className="flex items-center justify-between mb-8">
+        {/* List View Section */}
+        {viewMode === 'list' && (
+          <section className="max-w-5xl mx-auto px-4 py-16">
+            <div className="mb-10 text-center">
+              <h2 className="text-4xl font-extrabold text-text-primary mb-3 tracking-tight">
+                {loading ? "Loading Mosques..." : `${sorted.length} Mosques Found`}
+              </h2>
+              <p className="text-lg text-text-secondary font-medium">
+                {sorted.length > 0
+                  ? selectedState
+                    ? `Showing mosques in ${selectedState}`
+                    : "Sorted by distance from you"
+                  : "No mosques available in this area"}
+              </p>
+            </div>
+
+            <MosqueList
+              mosques={sorted}
+              onSelectMosque={handleSelectMosque}
+              isLoading={loading}
+              onUpvote={handleUpvote}
+            />
+          </section>
+        )}
+
+        {/* Submit Mosque CTA */}
+        <section className="border-t border-border mt-16">
+          <div className="max-w-5xl mx-auto px-4 py-16">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative bg-white/5 backdrop-blur-md border border-primary/20 rounded-2xl p-10 md:p-16 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative max-w-2xl mx-auto text-center">
+                  <h3 className="text-4xl font-extrabold text-text-primary mb-4 tracking-tight">
+                    Know a mosque offering Taraweeh?
+                  </h3>
+                  <p className="text-text-secondary text-lg mb-10 font-medium">
+                    Help your community find prayer times and refreshments at local mosques during Ramadan.
+                  </p>
+                  <Link href="/submit">
+                    <button className="px-10 py-4 bg-primary text-surface-light font-bold rounded-xl hover:bg-primary-hover transition-all duration-200 active:scale-95 shadow-lg hover:shadow-primary/30 text-lg">
+                      Submit a Mosque →
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="border-t border-border bg-surface/60 mt-16">
+          <div className="max-w-5xl mx-auto px-4 py-14">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+              {/* Branding */}
               <div>
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  {loading ? "Loading..." : `${sorted.length} Mosques`}
-                </h2>
-                <p className="text-gray-600">
-                  {sorted.length > 0 
-                    ? "Sorted by distance" 
-                    : "No mosques found"}
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-3xl">🕌</span>
+                  <h2 className="text-xl font-bold text-text-primary tracking-tight">Taraweeh Finder</h2>
+                </div>
+                <p className="text-text-secondary text-base">
+                  Discover taraweeh sessions at nearby masjids during Ramadan.
+                </p>
+              </div>
+
+              {/* Links */}
+              <div>
+                <h3 className="font-bold text-text-primary mb-5 tracking-tight">Quick Links</h3>
+                <ul className="space-y-3 text-base text-text-secondary">
+                  <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
+                  <li><Link href="/submit" className="hover:text-primary transition-colors">Submit Mosque</Link></li>
+                  <li><Link href="/admin/login" className="hover:text-primary transition-colors">Admin</Link></li>
+                </ul>
+              </div>
+
+              {/* Info */}
+              <div>
+                <h3 className="font-bold text-text-primary mb-5 tracking-tight">About</h3>
+                <p className="text-text-secondary text-base">
+                  Made with <span className="text-red-500">♥</span> by Fauzan
                 </p>
               </div>
             </div>
 
-            {loading ? (
-              <PageSkeletonGrid />
-            ) : sorted.length === 0 ? (
-              <div className="text-center py-16 bg-white/5 backdrop-blur rounded-2xl border border-white/10">
-                <p className="text-gray-500 text-lg">No mosques available</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sorted.map((mosque, index) => (
-                  <div 
-                    key={mosque.id}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <MosqueCard
-                      mosque={mosque}
-                      onUpvote={handleUpvote}
-                      onView={handleView}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Map Section */}
-          <div className="mb-12">
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-300">
-              {loading ? (
-                <div className="w-full h-[400px] bg-white/5 backdrop-blur rounded-2xl animate-pulse" />
-              ) : (
-                <MapView
-                  mosques={sorted}
-                  center={location ? [location.coords.latitude, location.coords.longitude] : [22.9734, 78.6569]}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Footer */}
-          <footer className="border-t border-white/5 pt-12 mt-16">
-            <div className="text-center pb-8">
-              <p className="text-gray-600 flex items-center justify-center gap-2">
-                <span>Taraweeh Finder</span>
-                <span className="text-gray-700">•</span>
-                <span>Ramadan 1447 AH</span>
+            <div className="border-t border-border pt-8 text-center">
+              <p className="text-text-secondary text-base">
+                Made with <span className="text-red-500">♥</span> by Fauzan
               </p>
-              <p className="text-gray-700 text-sm mt-2">Made with ❤️ by Fauzan</p>
             </div>
-          </footer>
-        </div>
+          </div>
+        </footer>
       </main>
+
+      {/* Mosque Detail Panel */}
+      <MosqueDetailPanel mosque={selectedMosque} onClose={() => setSelectedMosque(null)} />
+    </>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <LocationProvider>
+      <HomeContent />
     </LocationProvider>
   );
 }

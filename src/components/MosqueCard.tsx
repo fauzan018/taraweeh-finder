@@ -1,6 +1,6 @@
 "use client";
 import { Mosque } from "../types";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/ui/Card";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
