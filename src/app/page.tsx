@@ -3,7 +3,6 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowDown } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Mosque, TaraweehSession } from "@/types";
 import { LocationProvider, useLocation } from "@/components/LocationProvider";
@@ -36,6 +35,11 @@ function distance(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * c;
 }
 
+function normalizeCoordinate(value: unknown) {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
 function hasValidCoordinates(mosque: Mosque) {
   return Number.isFinite(mosque.latitude) && Number.isFinite(mosque.longitude);
 }
@@ -47,7 +51,6 @@ function HomeContent() {
   const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
   const [selectedState, setSelectedState] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<string>("");
-  const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const [upvotedMosqueIds, setUpvotedMosqueIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -79,8 +82,8 @@ function HomeContent() {
           const typed = mosque as MosqueWithSessions;
           return {
             ...typed,
-            latitude: Number(typed.latitude),
-            longitude: Number(typed.longitude),
+            latitude: normalizeCoordinate(typed.latitude),
+            longitude: normalizeCoordinate(typed.longitude),
             upvotes: typed.upvotes || 0,
             views: typed.views || 0,
             taraweeh_sessions: (typed.taraweeh_sessions || []).sort(
@@ -246,78 +249,61 @@ function HomeContent() {
 
       <main className="bg-background min-h-screen pb-8">
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-          <div className="flex items-center justify-center mb-6">
-            <div className="bg-surface/80 backdrop-blur-md border border-border rounded-xl px-2 py-2 flex gap-2 shadow-lg">
-              <button
-                onClick={() => setViewMode("map")}
-                className={`px-5 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
-                  viewMode === "map"
-                    ? "bg-primary text-surface-light shadow-md"
-                    : "text-text-primary hover:bg-white/10"
-                }`}
-              >
-                🗺️ Map
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`px-5 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
-                  viewMode === "list"
-                    ? "bg-primary text-surface-light shadow-md"
-                    : "text-text-primary hover:bg-white/10"
-                }`}
-              >
-                📋 List
-              </button>
-            </div>
-          </div>
-
-          {viewMode === "map" && (
-            <div className="relative w-full h-[60vh] overflow-hidden rounded-3xl shadow-xl mb-12 border border-border">
-              <MapView
-                mosques={mapMosques}
-                center={mapCenter}
-                onMarkerClick={handleSelectMosque}
-              />
-
-              <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 z-20 animate-bounce">
-                <ArrowDown className="w-6 h-6 text-primary" />
-              </div>
-            </div>
-          )}
-
-          {viewMode === "list" && (
-            <section className="max-w-5xl mx-auto py-8">
-              <div className="mb-10 text-center">
-                <h2 className="text-4xl font-extrabold text-text-primary mb-3 tracking-tight">
-                  {loading ? "Loading Mosques..." : `${filteredMosques.length} Mosques Found`}
-                </h2>
-                <p className="text-lg text-text-secondary font-medium">
-                  {filteredMosques.length > 0
-                    ? selectedCity
-                      ? selectedState
-                        ? `Showing mosques in ${selectedCity}, ${selectedState}`
-                        : `Showing mosques in ${selectedCity}`
-                      : selectedState
-                        ? `Showing mosques in ${selectedState}`
-                        : "Sorted by distance from you"
-                    : "No mosques available for the selected filters"}
+          <section className="max-w-5xl mx-auto py-8">
+            <div className="mb-10 text-center">
+              <h2 className="text-4xl font-extrabold text-text-primary mb-3 tracking-tight">
+                {loading ? "Loading Mosques..." : `${filteredMosques.length} Mosques Found`}
+              </h2>
+              <p className="text-lg text-text-secondary font-medium">
+                {filteredMosques.length > 0
+                  ? selectedCity
+                    ? selectedState
+                      ? `Showing mosques in ${selectedCity}, ${selectedState}`
+                      : `Showing mosques in ${selectedCity}`
+                    : selectedState
+                      ? `Showing mosques in ${selectedState}`
+                      : "Sorted by distance from you"
+                  : "No mosques available for the selected filters"}
+              </p>
+              {locationError && (
+                <p className="text-sm text-warning mt-3">
+                  Location access unavailable: {locationError}
                 </p>
-                {locationError && (
-                  <p className="text-sm text-warning mt-3">
-                    Location access unavailable: {locationError}
-                  </p>
-                )}
-              </div>
+              )}
+            </div>
 
-              <MosqueList
-                mosques={filteredMosques}
-                onSelectMosque={handleSelectMosque}
-                isLoading={loading}
-                onUpvote={handleUpvote}
-                upvotedMosqueIds={upvotedMosqueIds}
-              />
-            </section>
-          )}
+            <MosqueList
+              mosques={filteredMosques}
+              onSelectMosque={handleSelectMosque}
+              isLoading={loading}
+              onUpvote={handleUpvote}
+              upvotedMosqueIds={upvotedMosqueIds}
+            />
+          </section>
+
+          <section className="mt-4 mb-12">
+            <div className="mb-4 text-center">
+              <h3 className="text-2xl font-bold text-text-primary">Map View</h3>
+              <p className="text-text-secondary text-sm mt-1">
+                {mapMosques.length > 0
+                  ? "Markers are shown for mosques with resolved coordinates"
+                  : "No resolved coordinates available for current filters"}
+              </p>
+            </div>
+            <div className="relative w-full h-[60vh] overflow-hidden rounded-3xl shadow-xl border border-border">
+              {mapMosques.length > 0 ? (
+                <MapView
+                  mosques={mapMosques}
+                  center={mapCenter}
+                  onMarkerClick={handleSelectMosque}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-surface text-text-secondary">
+                  Map is unavailable for this filter selection.
+                </div>
+              )}
+            </div>
+          </section>
         </section>
 
         <section className="border-t border-border mt-10">

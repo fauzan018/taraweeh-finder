@@ -61,8 +61,8 @@ export function MosqueSubmissionForm({
     setSuccessMessage(null);
     setErrorMessage(null);
     try {
-      if (!form.name || !form.address || !form.city || !form.state || !form.sweet_type || !form.googleMapsLink) {
-        throw new Error("Please fill in all required fields, including state and Google Maps link");
+      if (!form.name || !form.address || !form.city || !form.state || !form.sweet_type) {
+        throw new Error("Please fill in all required fields");
       }
       // Submit via API route
       const response = await fetch("/api/submit", {
@@ -124,7 +124,7 @@ export function MosqueSubmissionForm({
               ]}
             />
             <Input required label="Address" name="address" value={form.address} onChange={handleChange} placeholder="Full address" />
-            <Input required label="Google Maps Link" name="googleMapsLink" value={form.googleMapsLink} onChange={handleChange} placeholder="Paste Google Maps link with coordinates" />
+            <Input label="Google Maps Link (Optional)" name="googleMapsLink" value={form.googleMapsLink} onChange={handleChange} placeholder="Paste any Google Maps link (short links supported)" />
             <Input required label="Sweet Type" name="sweet_type" value={form.sweet_type} onChange={handleChange} placeholder="e.g., Laddoo, Balushahi" />
           </div>
         </section>
