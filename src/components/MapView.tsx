@@ -20,7 +20,7 @@ export default function MapView({ mosques, center }: { mosques: Mosque[]; center
         {mosques.map((m) => (
           <Marker key={m.id} position={[m.latitude, m.longitude]} icon={markerIcon}>
             <Popup>
-              <div className="text-black">
+              <div className="text-white">
                 <strong>{m.name}</strong>
                 <br />{m.address}
                 <br />{m.city}, {m.state}

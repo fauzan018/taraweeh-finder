@@ -18,11 +18,11 @@ export function PremiumButton({
 
   const variantClasses = {
     primary:
-      "px-4 py-2.5 bg-white/15 hover:bg-white/25 border border-white/20 hover:border-white/40 text-black shadow-lg hover:shadow-xl",
+      "px-4 py-2.5 bg-[var(--card)] hover:bg-[var(--card)] border border-[var(--card)] text-white shadow-lg hover:shadow-xl",
     secondary:
-      "px-4 py-2 bg-white/8 hover:bg-white/15 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white",
+      "px-4 py-2 bg-[var(--surface)] hover:bg-[var(--card)] border border-[var(--card)] hover:border-[var(--card)] text-gray-300 hover:text-white",
     tertiary:
-      "px-3 py-1.5 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white",
+      "px-3 py-1.5 bg-[var(--surface)] hover:bg-[var(--card)] text-gray-400 hover:text-white",
   };
 
   return (

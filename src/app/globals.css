@@ -185,7 +185,8 @@
 
   /* Glass morphism helper */
   .glass {
-    @apply backdrop-blur-xl bg-white/5;
+    @apply backdrop-blur-xl;
+    background-color: var(--surface);
   }
 
   /* Premium transitions */

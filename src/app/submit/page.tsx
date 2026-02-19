@@ -131,7 +131,7 @@ export default function SubmitMosquePage() {
           <button
             type="button"
             onClick={addTaraweehDate}
-            className="bg-[var(--primary)] text-black px-3 py-2 rounded mt-2 w-full"
+            className="bg-[var(--primary)] text-white px-3 py-2 rounded mt-2 w-full"
           >
             + Add Another Taraweeh Date
           </button>
@@ -140,7 +140,7 @@ export default function SubmitMosquePage() {
         <input name="sweet_type" value={form.sweet_type} onChange={handleChange} placeholder="Sweet Type" className="rounded p-2 bg-[var(--surface)] text-white" />
         <input name="distribution_time" value={form.distribution_time} onChange={handleChange} placeholder="Distribution Time" className="rounded p-2 bg-[var(--surface)] text-white" />
         <input name="crowd_level" value={form.crowd_level} onChange={handleChange} placeholder="Crowd Level" className="rounded p-2 bg-[var(--surface)] text-white" />
-        <Button type="submit" className="bg-[var(--primary)] text-black rounded-xl mt-2" disabled={loading}>{loading ? "Submitting..." : "Submit"}</Button>
+        <Button type="submit" className="bg-[var(--primary)] text-white rounded-xl mt-2" disabled={loading}>{loading ? "Submitting..." : "Submit"}</Button>
         {success && <div className="text-green-400 mt-2">Submission received! Thank you.</div>}
       </form>
     </main>
